@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Business details" %}{% endblock %}
+{% block content %}
+{% url 'core:settings' as back_url %}
+{% include "core/partials/page_header.html" with title=_("Business details") back_url=back_url back_label=_("Settings") %}
+<div class="card form-card">
+  <div class="card-body">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {{ form }}
+      <button class="btn btn-primary" type="submit">{% translate "Save" %}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

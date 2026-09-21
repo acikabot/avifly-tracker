@@ -1,0 +1,20 @@
+{% load i18n avifly %}
+<div class="col-12">
+  <div class="card">
+    <div class="card-header fw-semibold d-flex"><span class="me-auto"><i class="bi bi-cash-coin"></i> {% translate "Money" %}</span><a class="small" href="{% url 'money:book' %}">{% translate "Money book" %}</a></div>
+    <div class="card-body">
+      <div class="row g-3">
+        {% for s in summaries %}
+        <div class="col-md-6">
+          <div class="small text-body-secondary text-uppercase">{% if forloop.first %}{% translate "This month" %}{% else %}{{ s.period.label }}{% endif %}</div>
+          <div class="row g-2 mt-1">
+            <div class="col-4"><div class="small text-body-secondary">{% translate "Received" %}</div><div class="fw-semibold money text-success">{{ s.received|money:None }}</div></div>
+            <div class="col-4"><div class="small text-body-secondary">{% translate "Costs" %}</div><div class="fw-semibold money text-danger">{{ s.spent|money:None }}</div></div>
+            <div class="col-4"><div class="small text-body-secondary">{% translate "Profit" %}</div><div class="fw-semibold money">{{ s.profit|money }}</div></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>

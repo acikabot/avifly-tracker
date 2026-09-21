@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load i18n avifly %}
+{% block title %}{% translate "Jobs" %}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <h1 class="h3 mb-0 me-auto">{% translate "Jobs" %}</h1>
+  <a class="btn btn-outline-secondary" href="?{% query export='csv' page=None %}"><i class="bi bi-download"></i> CSV</a>
+  {% if perms.jobs.add_job %}<a class="btn btn-primary" href="{% url 'jobs:add' %}"><i class="bi bi-plus-lg"></i> {% translate "New job" %}</a>{% endif %}
+</div>
+
+<form class="card card-body mb-3" method="get" data-autosubmit>
+  <div class="row g-2 align-items-end">
+    <div class="col-12 col-md-4">
+      <label class="form-label small mb-1" for="{{ filters.q.auto_id }}">{{ filters.q.label }}</label>
+      {% render_widget filters.q "form-control-sm" %}
+    </div>
+    <div class="col-6 col-md-2">{% render_widget filters.status "form-select-sm" %}</div>
+    <div class="col-6 col-md-2">{% render_widget filters.operation "form-select-sm" %}</div>
+    <div class="col-6 col-md-2">{% render_widget filters.crop "form-select-sm" %}</div>
+    <div class="col-6 col-md-2"><button class="btn btn-sm btn-secondary w-100" type="submit">{% translate "Filter" %}</button></div>
+    <div class="col-6 col-md-3">
+      <label class="form-label small mb-1" for="{{ filters.date_from.auto_id }}">{{ filters.date_from.label }}</label>
+      {% render_widget filters.date_from "form-control-sm" %}
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label small mb-1" for="{{ filters.date_to.auto_id }}">{{ filters.date_to.label }}</label>
+      {% render_widget filters.date_to "form-control-sm" %}
+    </div>
+    {{ filters.customer }}
+    {% if request.GET %}<div class="col-auto"><a class="btn btn-sm btn-link" href="{% url 'jobs:list' %}">{% translate "Clear filters" %}</a></div>{% endif %}
+  </div>
+</form>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>{% translate "Job" %}</th>
+          <th>{% translate "Customer" %}</th>
+          <th class="d-none d-md-table-cell">{% translate "Work" %}</th>
+          <th class="text-end">ha</th>
+          <th class="text-end">{% translate "Total" %}</th>
+          <th class="d-none d-sm-table-cell">{% translate "Status" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job in object_list %}
+        <tr>
+          <td><a class="fw-semibold" href="{{ job.get_absolute_url }}">{{ job.number }}</a>
+            <div class="small text-body-secondary">{{ job.start_date|date:"SHORT_DATE_FORMAT"|default:"—" }}{% if job.end_date and job.end_date != job.start_date %}–{{ job.end_date|date:"d.m." }}{% endif %}</div></td>
+          <td>{{ job.customer.name }}<div class="small text-body-secondary d-sm-none">{% include "jobs/partials/status_badge.html" %}</div></td>
+          <td class="d-none d-md-table-cell">{{ job.operation_type }}{% if job.crop %} · {{ job.crop }}{% endif %}</td>
+          <td class="text-end num">{{ job.total_hectares|number:2 }}</td>
+          <td class="text-end money">{{ job.total_amount|money:None }}</td>
+          <td class="d-none d-sm-table-cell">{% include "jobs/partials/status_badge.html" %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-body-secondary">{% translate "No jobs found." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include "core/partials/pagination.html" %}
+{% endblock %}

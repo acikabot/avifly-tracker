@@ -1,0 +1,26 @@
+{% load i18n avifly %}
+<div class="card mb-3">
+  <div class="card-header fw-semibold d-flex"><span class="me-auto"><i class="bi bi-cash-coin"></i> {% translate "Payment" %}</span>
+    {% if payment %}<span class="badge text-bg-success">{{ payment.get_status_display }}</span>{% endif %}</div>
+  <div class="card-body">
+    {% if payment %}
+      <div class="d-flex justify-content-between"><span>{{ payment.method }}</span><strong class="money">{{ payment.amount|money }}</strong></div>
+      <div class="small text-body-secondary">{{ payment.date|date:"d.m.Y" }}{% if payment.note %} · {{ payment.note }}{% endif %}</div>
+    {% else %}
+      <div class="small text-body-secondary">{% translate "No payment recorded yet — it's added when the job has work on it." %}</div>
+    {% endif %}
+  </div>
+  {% if costs is not None %}
+  <ul class="list-group list-group-flush small">
+    {% for cost in costs %}
+    <li class="list-group-item d-flex"><a class="me-auto" href="{{ cost.get_absolute_url }}">{{ cost.description }}</a><span class="money text-danger">−{{ cost.amount|money:None }}</span></li>
+    {% endfor %}
+    {% if costs %}
+    <li class="list-group-item d-flex"><strong class="me-auto">{% translate "Job profit" %}</strong><strong class="money">{{ job_profit|money }}</strong></li>
+    {% endif %}
+  </ul>
+  {% if perms.money.add_cost %}
+  <div class="card-footer"><a class="small" href="{% url 'money:cost_add' %}?job={{ job.pk }}&next={{ job.get_absolute_url|urlencode }}"><i class="bi bi-plus-lg"></i> {% translate "Add a cost for this job" %}</a></div>
+  {% endif %}
+  {% endif %}
+</div>

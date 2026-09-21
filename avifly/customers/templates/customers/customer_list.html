@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load i18n avifly %}
+{% block title %}{% translate "Customers" %}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <h1 class="h3 mb-0 me-auto">{% translate "Customers" %}</h1>
+  <a class="btn btn-outline-secondary" href="?{% query export='csv' page=None %}"><i class="bi bi-download"></i> CSV</a>
+  {% if perms.customers.add_customer %}
+  <a class="btn btn-primary" href="{% url 'customers:add' %}"><i class="bi bi-plus-lg"></i> {% translate "New customer" %}</a>
+  {% endif %}
+</div>
+
+<form class="row g-2 mb-3" method="get" data-autosubmit>
+  <div class="col">
+    <input class="form-control" type="search" name="q" value="{{ request.GET.q }}"
+           placeholder="{% translate 'Search name, town, phone… (Cyrillic or Latin)' %}" autocomplete="off"
+           hx-get="{% url 'customers:list' %}" hx-trigger="input changed delay:300ms, search"
+           hx-target="#customer-results" hx-select="#customer-results" hx-swap="outerHTML" hx-push-url="true"
+           hx-include="closest form">
+  </div>
+  <div class="col-auto d-flex align-items-center">
+    <div class="form-check mb-0">
+      <input class="form-check-input" type="checkbox" name="inactive" value="1" id="show-inactive" {% if request.GET.inactive == "1" %}checked{% endif %}>
+      <label class="form-check-label" for="show-inactive">{% translate "Show inactive" %}</label>
+    </div>
+  </div>
+</form>
+
+<div id="customer-results">
+  <div class="card">
+    <div class="list-group list-group-flush">
+      {% for customer in object_list %}
+      <a class="list-group-item list-group-item-action" href="{{ customer.get_absolute_url }}">
+        <div class="d-flex flex-wrap gap-2 align-items-baseline">
+          <strong class="me-auto">{{ customer.name }}{% if not customer.is_active %} <span class="badge text-bg-secondary">{% translate "inactive" %}</span>{% endif %}</strong>
+          <span class="small text-body-secondary">{{ customer.town }}</span>
+        </div>
+        <div class="small text-body-secondary">
+          {% if customer.phone %}<i class="bi bi-telephone"></i> {{ customer.phone }} · {% endif %}
+          {% blocktranslate count counter=customer.field_count %}{{ counter }} field{% plural %}{{ counter }} fields{% endblocktranslate %}
+          {% if customer.company_name %} · {{ customer.company_name }}{% endif %}
+        </div>
+      </a>
+      {% empty %}
+      <div class="list-group-item text-body-secondary">{% if request.GET.q %}{% translate "No customers match your search." %}{% else %}{% translate "No customers yet." %}{% endif %}</div>
+      {% endfor %}
+    </div>
+  </div>
+  {% include "core/partials/pagination.html" %}
+</div>
+{% endblock %}

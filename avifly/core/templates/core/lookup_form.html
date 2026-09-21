@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ lookup.label }}{% endblock %}
+{% block content %}
+{% url 'core:lookup_list' lookup.key as back_url %}
+{% if object.pk %}{% include "core/partials/page_header.html" with title=object.name back_url=back_url back_label=lookup.label %}
+{% else %}{% translate "Add" as add_title %}{% include "core/partials/page_header.html" with title=add_title subtitle=lookup.label back_url=back_url back_label=lookup.label %}{% endif %}
+
+<div class="card form-card">
+  <div class="card-body">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {{ form }}
+      <button class="btn btn-primary" type="submit">{% translate "Save" %}</button>
+      <a class="btn btn-link" href="{{ back_url }}">{% translate "Cancel" %}</a>
+    </form>
+    {% if object.pk %}
+    <hr>
+    <form method="post" action="{% url 'core:lookup_delete' lookup.key object.pk %}" data-confirm="{% translate 'Delete this entry?' %}">
+      {% csrf_token %}
+      <button class="btn btn-sm btn-outline-danger" type="submit"><i class="bi bi-trash3"></i> {% translate "Delete" %}</button>
+      <span class="form-text ms-2">{% translate "Entries that are in use can't be deleted — make them inactive instead." %}</span>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

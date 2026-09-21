@@ -1,0 +1,5 @@
+{% load i18n %}
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item"><a class="nav-link{% if active == 'book' %} active{% endif %}" href="{% url 'money:book' %}">{% translate "Money book" %}</a></li>
+  <li class="nav-item"><a class="nav-link{% if active == 'costs' %} active{% endif %}" href="{% url 'money:costs' %}">{% translate "Costs" %}</a></li>
+</ul>

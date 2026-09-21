@@ -1,0 +1,29 @@
+{% extends "account/base_entrance.html" %}
+{% load allauth i18n accounts_tags %}
+{% block head_title %}{% translate "Sign up" %}{% endblock head_title %}
+{% block content %}
+{% element h1 %}{% translate "Sign up" %}{% endelement %}
+<p class="text-body-secondary">
+  {% translate "Create your account. An owner will approve it and choose what you can access." %}
+  {% blocktranslate with login_url=login_url %}Already have an account? <a href="{{ login_url }}">Sign in</a>.{% endblocktranslate %}
+</p>
+{% url 'account_signup' as action_url %}
+{% turnstile_site_key as site_key %}
+<div class="card"><div class="card-body">
+{% element form form=form method="post" action=action_url tags="entrance,signup" %}
+  {% slot body %}
+    {% csrf_token %}
+    {% element fields form=form %}{% endelement %}
+    {% if site_key %}<div class="cf-turnstile mb-2" data-sitekey="{{ site_key }}"></div>{% endif %}
+    {{ redirect_field }}
+  {% endslot %}
+  {% slot actions %}
+    {% element button tags="prominent,signup" type="submit" %}{% translate "Sign up" %}{% endelement %}
+  {% endslot %}
+{% endelement %}
+</div></div>
+{% endblock content %}
+{% block extra_body %}
+{% turnstile_site_key as site_key %}
+{% if site_key %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
+{% endblock extra_body %}

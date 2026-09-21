@@ -1,0 +1,9 @@
+{
+  "name": "Avifly Tracker",
+  "short_name": "Avifly",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f5f7",
+  "theme_color": "#212529",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

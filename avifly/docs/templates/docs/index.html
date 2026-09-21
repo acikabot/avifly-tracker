@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Documentation" %}{% endblock %}
+{% block content %}
+{% url 'core:settings' as back_url %}
+{% include "core/partials/page_header.html" with title=_("Documentation") back_url=back_url back_label=_("Settings") %}
+<p class="text-body-secondary">{% translate "Rendered from the Markdown files on the Pi, so they always show the current version. Pages marked private are only visible to owners and are never pushed to the code repository." %}</p>
+<div class="card">
+  <div class="list-group list-group-flush">
+    {% for document in documents %}
+    <a class="list-group-item list-group-item-action" href="{{ document.url }}">
+      <div class="fw-semibold">{{ document.title }}{% if document.owner_only %} <span class="badge text-bg-secondary">{% translate "private" %}</span>{% endif %}</div>
+      {% if document.summary %}<div class="small text-body-secondary">{{ document.summary|truncatewords:40 }}</div>{% endif %}
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

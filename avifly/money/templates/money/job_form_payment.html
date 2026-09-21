@@ -1,0 +1,16 @@
+{% load i18n avifly %}
+<div class="card mb-3">
+  <div class="card-header fw-semibold"><i class="bi bi-cash-coin"></i> {{ section.title }}</div>
+  <div class="card-body">
+    <div class="row g-2">
+      <div class="col-sm-6">{{ form.method.as_field_group }}</div>
+      <div class="col-sm-6">
+        {{ form.amount.as_field_group }}
+        {{ form.follows_job_total.as_field_group }}
+      </div>
+      <div class="col-sm-6">{{ form.date.as_field_group }}</div>
+      <div class="col-sm-6">{{ form.note.as_field_group }}</div>
+    </div>
+    <div class="form-text">{% translate "Recorded as paid once the job has work on it." %}</div>
+  </div>
+</div>

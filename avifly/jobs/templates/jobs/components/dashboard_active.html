@@ -1,0 +1,23 @@
+{% load i18n avifly %}
+<div class="col-lg-6">
+  <div class="card h-100">
+    <div class="card-header fw-semibold"><i class="bi bi-lightning-charge"></i> {% translate "Active jobs" %}</div>
+    <ul class="list-group list-group-flush">
+      {% for job in in_progress %}
+      <a class="list-group-item list-group-item-action" href="{{ job.get_absolute_url }}">
+        <div class="d-flex gap-2"><strong class="me-auto">{{ job.customer.name }}</strong><span class="badge text-bg-warning">{{ job.get_status_display }}</span></div>
+        <div class="small text-body-secondary">{{ job.number }} · {{ job.operation_type }}{% if job.length_label %} · {{ job.length_label }}{% endif %}</div>
+      </a>
+      {% endfor %}
+      {% for job in planned %}
+      <a class="list-group-item list-group-item-action" href="{{ job.get_absolute_url }}">
+        <div class="d-flex gap-2"><strong class="me-auto">{{ job.customer.name }}</strong><span class="small">{{ job.start_date|date:"D d.m." }}</span></div>
+        <div class="small text-body-secondary">{{ job.number }} · {{ job.operation_type }} · {% translate "planned" %}</div>
+      </a>
+      {% endfor %}
+      {% if not in_progress and not planned %}
+      <li class="list-group-item text-body-secondary small">{% translate "Nothing planned or in progress." %}</li>
+      {% endif %}
+    </ul>
+  </div>
+</div>

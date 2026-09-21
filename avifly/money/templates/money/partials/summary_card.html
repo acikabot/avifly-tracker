@@ -1,0 +1,13 @@
+{% load i18n avifly %}
+<div class="col-md-6">
+  <div class="card h-100">
+    <div class="card-body">
+      <div class="small text-body-secondary text-uppercase">{{ title }}</div>
+      <div class="row g-2 mt-1">
+        <div class="col-4"><div class="small text-body-secondary">{% translate "Received" %}</div><div class="fw-semibold money text-success">{{ summary.received|money:None }}</div></div>
+        <div class="col-4"><div class="small text-body-secondary">{% translate "Costs" %}</div><div class="fw-semibold money text-danger">{{ summary.spent|money:None }}</div></div>
+        <div class="col-4"><div class="small text-body-secondary">{% translate "Profit" %}</div><div class="fw-semibold money">{{ summary.profit|money }}</div></div>
+      </div>
+    </div>
+  </div>
+</div>

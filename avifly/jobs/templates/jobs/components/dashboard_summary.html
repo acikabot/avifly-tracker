@@ -1,0 +1,20 @@
+{% load i18n avifly %}
+<div class="col-lg-6">
+  <div class="card h-100">
+    <div class="card-header fw-semibold"><i class="bi bi-bar-chart"></i> {% translate "Work" %}</div>
+    <div class="card-body">
+      <div class="row g-2">
+        {% for period in periods %}
+        <div class="col-6">
+          <div class="text-body-secondary small text-uppercase">{{ period.label }}</div>
+          <div class="stat px-0"><div class="stat-value">{{ period.hectares|default:0|number:1 }} ha</div>
+            <div class="stat-note">{% blocktranslate count counter=period.jobs %}{{ counter }} job{% plural %}{{ counter }} jobs{% endblocktranslate %}{% if period.minutes %} · {{ period.minutes|duration }}{% endif %}</div>
+            <div class="stat-note">{% translate "Charged" %} {{ period.charged|default:0|money }}</div>
+            {% if period.price_per_ha %}<div class="stat-note">{{ period.price_per_ha|money }} / ha</div>{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>

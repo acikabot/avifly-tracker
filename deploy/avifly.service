@@ -1,0 +1,49 @@
+# systemd unit for Avifly Tracker. deploy/install.sh fills in the paths and user.
+[Unit]
+Description=Avifly Tracker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Its own unprivileged account: no shell, no password, no sudo.
+User=__USER__
+Group=__USER__
+WorkingDirectory=__APP_DIR__
+EnvironmentFile=__APP_DIR__/.env
+ExecStart=__APP_DIR__/.venv/bin/gunicorn config.wsgi -c deploy/gunicorn.conf.py
+Restart=on-failure
+RestartSec=5
+# Files the app creates are readable by its group (the developer), nobody else.
+UMask=0027
+
+# Hardening. The whole system is read-only; /home is replaced by an empty folder with
+# only the app's code (read-only) and its data folder (read-write) put back into it.
+NoNewPrivileges=true
+CapabilityBoundingSet=
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=tmpfs
+BindReadOnlyPaths=__APP_DIR__
+BindPaths=__APP_DIR__/var
+ProtectProc=invisible
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RemoveIPC=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+# A blocked system call fails with an error in the log instead of killing a worker.
+SystemCallErrorNumber=EPERM
+
+[Install]
+WantedBy=multi-user.target

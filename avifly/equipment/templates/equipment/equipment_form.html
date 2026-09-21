@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% if object %}{{ object.name }}{% else %}{% translate "Add equipment" %}{% endif %}{% endblock %}
+{% block content %}
+{% if object %}{% include "core/partials/page_header.html" with title=object.name back_url=object.get_absolute_url back_label=_("Back") %}
+{% else %}{% url 'equipment:list' as back_url %}{% include "core/partials/page_header.html" with title=_("Add equipment") back_url=back_url back_label=_("Equipment") %}{% endif %}
+<div class="card form-card">
+  <div class="card-body">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {{ form }}
+      <button class="btn btn-primary btn-touch" type="submit">{% translate "Save" %}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

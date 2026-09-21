@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Equipment" %}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <h1 class="h3 mb-0 me-auto">{% translate "Equipment" %}</h1>
+  {% if request.GET.all == "1" %}
+  <a class="btn btn-outline-secondary" href="?">{% translate "Hide retired & sold" %}</a>
+  {% else %}
+  <a class="btn btn-outline-secondary" href="?all=1">{% translate "Show retired & sold" %}</a>
+  {% endif %}
+  {% if perms.equipment.add_equipment %}
+  <a class="btn btn-primary" href="{% url 'equipment:add' %}"><i class="bi bi-plus-lg"></i> {% translate "Add equipment" %}</a>
+  {% endif %}
+</div>
+
+{% for kind, items in groups %}
+<div class="card mb-3">
+  <div class="card-header d-flex align-items-center">
+    <span class="fw-semibold me-auto">{{ kind.name }}</span>
+    {% if kind.show_on_jobs %}<span class="badge text-bg-light border">{% if kind.allow_multiple %}{% translate "several per job day" %}{% else %}{% translate "one per job day" %}{% endif %}</span>{% endif %}
+  </div>
+  <div class="list-group list-group-flush">
+    {% for item in items %}
+    <a class="list-group-item list-group-item-action d-flex flex-wrap align-items-center gap-2" href="{{ item.get_absolute_url }}">
+      <span class="me-auto">
+        <strong>{{ item.name }}</strong>
+        {% if item.model_name %}<span class="text-body-secondary"> · {{ item.model_name }}</span>{% endif %}
+        {% if item.serial_number %}<div class="small text-body-secondary">SN {{ item.serial_number }}</div>{% endif %}
+      </span>
+      <span class="badge {% if item.status == 'active' %}text-bg-success{% elif item.status == 'spare' %}text-bg-info{% else %}text-bg-secondary{% endif %}">{{ item.get_status_display }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% empty %}
+<div class="card"><div class="card-body text-body-secondary">
+  {% translate "No equipment yet. Add your drones, generators and anything else you want to pick on jobs." %}
+  {% if perms.core.manage_settings %}<br>{% url 'core:lookup_list' 'equipment.equipmenttype' as types_url %}{% blocktranslate %}Equipment types are set up under <a href="{{ types_url }}">Settings → Equipment types</a>.{% endblocktranslate %}{% endif %}
+</div></div>
+{% endfor %}
+{% endblock %}

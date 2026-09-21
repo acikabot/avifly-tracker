@@ -1,0 +1,11 @@
+{% load i18n avifly %}
+<div class="card mb-3">
+  <div class="card-header d-flex"><span class="fw-semibold me-auto">{% translate "Payments" %}</span><strong class="money">{{ received|money }}</strong></div>
+  <ul class="list-group list-group-flush small">
+    {% for payment in recent %}
+    <li class="list-group-item d-flex gap-2"><span class="me-auto">{{ payment.date|date:"d.m.Y" }} · <a href="{{ payment.job.get_absolute_url }}">{{ payment.job.number }}</a> · {{ payment.method }}</span><span class="money">{{ payment.amount|money:None }}</span></li>
+    {% empty %}
+    <li class="list-group-item text-body-secondary">{% translate "No payments yet." %}</li>
+    {% endfor %}
+  </ul>
+</div>

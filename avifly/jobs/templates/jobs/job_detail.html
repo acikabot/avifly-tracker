@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% load i18n avifly %}
+{% block title %}{{ object.number }}{% endblock %}
+{% block content %}
+{% with job=object %}
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <div class="me-auto">
+    <a class="small text-decoration-none" href="{% url 'jobs:list' %}"><i class="bi bi-chevron-left"></i> {% translate "Jobs" %}</a>
+    <h1 class="h3 mb-0">{{ job.number }} {% include "jobs/partials/status_badge.html" %}</h1>
+    <div><a href="{{ job.customer.get_absolute_url }}">{{ job.customer.name }}</a> · {{ job.operation_type }}{% if job.crop %} · {{ job.crop }}{% endif %}</div>
+  </div>
+  {% if can_edit %}<a class="btn btn-primary" href="{% url 'jobs:edit' job.pk %}"><i class="bi bi-pencil"></i> {% translate "Edit" %}</a>{% endif %}
+  {% if perms.jobs.add_job %}
+  <form method="post" action="{% url 'jobs:duplicate' job.pk %}">{% csrf_token %}
+    <button class="btn btn-outline-secondary" type="submit" title="{% translate 'Plan the same work again' %}"><i class="bi bi-arrow-repeat"></i> {% translate "Repeat" %}</button>
+  </form>
+  {% endif %}
+</div>
+
+{% if job.material_note %}<div class="alert alert-light border py-2"><i class="bi bi-droplet"></i> <strong>{% translate "Material" %}:</strong> {{ job.material_note }}</div>{% endif %}
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    {% for day in job.days.all %}
+    <div class="card mb-3 day-card">
+      <div class="card-header d-flex flex-wrap align-items-center gap-2">
+        <strong class="me-auto">{% if job.day_count > 1 %}{% blocktranslate with n=day.position %}Day {{ n }}{% endblocktranslate %} · {% endif %}{{ day.date|date:"l, d.m.Y" }}</strong>
+        {% if day.is_imported %}<span class="badge text-bg-info"><i class="bi bi-cloud-download"></i> {% translate "imported" %}</span>{% endif %}
+        {% if day.is_running %}<span class="badge text-bg-warning">{% translate "working now" %}</span>{% endif %}
+      </div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-5 col-sm-3">{% translate "Fields" %}</dt>
+          <dd class="col-7 col-sm-9">
+            {% for field in day.farm_fields.all %}
+              {{ field.name }}{% if field.hectares %} <span class="text-body-secondary small num">({{ field.hectares|hectares }})</span>{% endif %}
+              {% if field.navigation_url %}<a class="small" href="{{ field.navigation_url }}" target="_blank" rel="noopener"><i class="bi bi-sign-turn-right"></i></a>{% endif %}{% if not forloop.last %}<br>{% endif %}
+            {% empty %}<span class="text-body-secondary">—</span>{% endfor %}
+          </dd>
+          <dt class="col-5 col-sm-3">{% translate "Equipment" %}</dt>
+          <dd class="col-7 col-sm-9">{% for item in day.equipment.all %}<a href="{{ item.get_absolute_url }}">{{ item.name }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-body-secondary">—</span>{% endfor %}</dd>
+          <dt class="col-5 col-sm-3">{% translate "Crew" %}</dt>
+          <dd class="col-7 col-sm-9">{% for person in day.crew.all %}{{ person.display_name }}{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-body-secondary">—</span>{% endfor %}</dd>
+          <dt class="col-5 col-sm-3">{% translate "Time" %}</dt>
+          <dd class="col-7 col-sm-9"><span class="num">{{ day.start_time|time:"H:i"|default:"—" }} → {{ day.end_time|time:"H:i"|default:"—" }}</span>{% if day.duration_minutes %} <span class="text-body-secondary num">({{ day.duration_minutes|duration }})</span>{% endif %}</dd>
+          <dt class="col-5 col-sm-3">{% translate "Hectares" %}</dt>
+          <dd class="col-7 col-sm-9 num">{{ day.hectares|hectares }}</dd>
+          {% if day.notes %}<dt class="col-5 col-sm-3">{% translate "Notes" %}</dt><dd class="col-7 col-sm-9">{{ day.notes }}</dd>{% endif %}
+        </dl>
+
+        {% if can_edit and job.status != "cancelled" and forloop.last %}
+        <div class="mt-3 d-grid gap-2 d-sm-flex">
+          {% if not day.start_time %}
+            <form method="post" action="{% url 'jobs:start_day' job.pk day.pk %}">{% csrf_token %}
+              <button class="btn btn-success btn-lg w-100" type="submit"><i class="bi bi-play-fill"></i> {% translate "Start now" %}</button>
+            </form>
+          {% elif day.is_running %}
+            <form class="d-flex gap-2 align-items-end" method="post" action="{% url 'jobs:finish_day' job.pk day.pk %}">{% csrf_token %}
+              <div>
+                <label class="form-label small mb-1" for="finish-ha">{% translate "Hectares done" %}</label>
+                <input class="form-control form-control-lg" id="finish-ha" name="hectares" type="number" step="0.01" min="0" inputmode="decimal" value="{{ day.hectares|default_if_none:'' }}">
+              </div>
+              <button class="btn btn-danger btn-lg" type="submit"><i class="bi bi-stop-fill"></i> {% translate "Finish" %}</button>
+            </form>
+          {% else %}
+            <form method="post" action="{% url 'jobs:next_day' job.pk %}">{% csrf_token %}
+              <button class="btn btn-outline-primary" type="submit"><i class="bi bi-calendar-plus"></i> {% translate "Continue on another day" %}</button>
+            </form>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">{% translate "Price" %}</div>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item d-flex justify-content-between num">
+          <span>{{ job.total_hectares|number:2 }} ha × {{ job.rate_per_ha|money }}</span><span>{{ job.base_amount|money:None }}</span>
+        </li>
+        {% for charge in job.extra_charges.all %}
+        <li class="list-group-item d-flex justify-content-between"><span>{{ charge.note }}</span><span class="num">{{ charge.amount|money:None }}</span></li>
+        {% endfor %}
+        <li class="list-group-item d-flex justify-content-between fs-5"><strong>{% translate "Total" %}</strong><strong class="num">{{ job.total_amount|money }}</strong></li>
+      </ul>
+      <div class="card-footer small text-body-secondary">
+        {% if job.work_minutes %}{% translate "Work time" %}: {{ job.work_minutes|duration }}{% endif %}
+      </div>
+    </div>
+
+    {% render_slot "jobs.job_detail" job %}
+
+    {% if job.notes %}<div class="card mb-3"><div class="card-body small">{{ job.notes|linebreaksbr }}</div></div>{% endif %}
+
+    <div class="card mb-3" id="photos">
+      <div class="card-header fw-semibold">{% translate "Photos" %}</div>
+      <div class="card-body">
+        {% if job.photos.all %}
+        <div class="row g-2 mb-2">
+          {% for photo in job.photos.all %}
+          <div class="col-4">
+            <a href="{{ photo.url }}" target="_blank" rel="noopener"><img class="img-fluid rounded" src="{{ photo.url }}" alt="{{ photo }}" loading="lazy"></a>
+            {% if perms.jobs.delete_job and can_edit %}
+            <form method="post" action="{% url 'jobs:photo_delete' job.pk photo.pk %}" data-confirm="{% translate 'Delete this photo?' %}">{% csrf_token %}
+              <button class="btn btn-link btn-sm text-danger p-0" type="submit">{% translate "delete" %}</button>
+            </form>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% if can_edit %}
+        <form method="post" action="{% url 'jobs:photo_upload' job.pk %}" enctype="multipart/form-data" class="d-flex gap-2">
+          {% csrf_token %}
+          <input class="form-control form-control-sm" type="file" name="photos" accept="image/*" multiple required>
+          <button class="btn btn-sm btn-outline-primary" type="submit">{% translate "Upload" %}</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if perms.jobs.delete_job %}<a class="btn btn-sm btn-outline-danger" href="{% url 'jobs:delete' job.pk %}"><i class="bi bi-trash3"></i> {% translate "Delete job" %}</a>{% endif %}
+{% history job %}
+{% endwith %}
+{% endblock %}

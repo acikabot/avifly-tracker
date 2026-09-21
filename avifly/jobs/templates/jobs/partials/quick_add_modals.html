@@ -1,0 +1,51 @@
+{% load i18n %}
+{% if perms.customers.add_customer %}
+<div class="modal fade" id="quick-customer" tabindex="-1" aria-labelledby="quick-customer-title" aria-hidden="true">
+  <div class="modal-dialog">
+    <form class="modal-content" data-quick-add="customer" action="{% url 'customers:quick_add' %}" novalidate>
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="quick-customer-title">{% translate "New customer" %}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% translate 'Close' %}"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger d-none" data-errors></div>
+        <div class="mb-3"><label class="form-label" for="qc-name">{% translate "Name" %} <span class="text-danger">*</span></label><input class="form-control" id="qc-name" name="name" required></div>
+        <div class="mb-3"><label class="form-label" for="qc-phone">{% translate "Phone" %}</label><input class="form-control" id="qc-phone" name="phone" type="tel"></div>
+        <div class="mb-3"><label class="form-label" for="qc-town">{% translate "Town / village" %}</label><input class="form-control" id="qc-town" name="town"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">{% translate "Add customer" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% if perms.customers.change_customer %}
+<div class="modal fade" id="quick-field" tabindex="-1" aria-labelledby="quick-field-title" aria-hidden="true">
+  <div class="modal-dialog">
+    <form class="modal-content" data-quick-add="field" data-url-template="{% url 'customers:field_quick_add' 0 %}" novalidate>
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="quick-field-title">{% translate "New field" %}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% translate 'Close' %}"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger d-none" data-errors></div>
+        <div class="mb-3"><label class="form-label" for="qf-name">{% translate "Name" %} <span class="text-danger">*</span></label><input class="form-control" id="qf-name" name="name" required></div>
+        <div class="mb-3"><label class="form-label" for="qf-hectares">{% translate "Size (ha)" %}</label><input class="form-control" id="qf-hectares" name="hectares" type="number" step="0.01" inputmode="decimal"></div>
+        <div class="mb-2"><label class="form-label" for="qf-coords">{% translate "Coordinates" %}</label>
+          <input class="form-control" id="qf-coords" data-coords-paste data-lat-target="qf-lat" data-lng-target="qf-lng" placeholder="41.99646, 21.43141" autocomplete="off"></div>
+        <input type="hidden" id="qf-lat" name="latitude"><input type="hidden" id="qf-lng" name="longitude">
+        <button class="btn btn-sm btn-outline-primary" type="button" data-geolocate data-lat-target="qf-lat" data-lng-target="qf-lng"
+                data-insecure-message="{% translate 'Your location is only available once the app runs over HTTPS. Paste coordinates instead.' %}">
+          <i class="bi bi-crosshair"></i> {% translate "Use my location" %}
+        </button>
+        <div class="small text-body-secondary mt-1" data-coords-preview></div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">{% translate "Add field" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}

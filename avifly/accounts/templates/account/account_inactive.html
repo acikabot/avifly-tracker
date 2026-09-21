@@ -1,0 +1,13 @@
+{% extends "allauth/layouts/entrance.html" %}
+{% load i18n %}
+{% block head_title %}{% translate "Waiting for approval" %}{% endblock head_title %}
+{% block content %}
+<div class="card">
+  <div class="card-body text-center py-4">
+    <i class="bi bi-hourglass-split display-5 text-warning"></i>
+    <h1 class="h4 mt-3">{% translate "Thanks — your account is waiting for approval" %}</h1>
+    <p class="text-body-secondary mb-0">{% translate "An owner has been told about your sign-up. Once they approve it and choose what you can access, you'll be able to sign in." %}</p>
+  </div>
+</div>
+<p class="text-center mt-3"><a href="{% url 'account_login' %}">{% translate "Back to sign in" %}</a></p>
+{% endblock content %}

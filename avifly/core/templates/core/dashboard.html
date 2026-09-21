@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load i18n avifly %}
+{% block title %}{% translate "Dashboard" %}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <h1 class="h3 mb-0 me-auto">{% blocktranslate with name=user.display_name %}Hi, {{ name }}{% endblocktranslate %}</h1>
+</div>
+
+{% if quick_links %}
+<div class="quick-actions d-grid gap-2 mb-4">
+  {% for link in quick_links %}
+  <a class="btn btn-lg {% if forloop.first %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ link.url }}">
+    <i class="bi bi-{{ link.item.icon }}"></i> {{ link.item.label }}
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="row g-3">
+  {% render_slot "core.dashboard" %}
+</div>
+{% endblock %}

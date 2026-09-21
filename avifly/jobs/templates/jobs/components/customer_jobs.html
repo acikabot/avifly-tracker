@@ -1,0 +1,29 @@
+{% load i18n avifly %}
+<div class="card mb-3">
+  <div class="card-header d-flex align-items-center">
+    <span class="fw-semibold me-auto">{% translate "Jobs" %}</span>
+    <a class="small" href="{% url 'jobs:list' %}?customer={{ customer.pk }}">{% translate "All" %}</a>
+  </div>
+  <div class="card-body py-2">
+    <div class="row text-center g-2">
+      <div class="col"><div class="stat-label small text-body-secondary">{% translate "Jobs" %}</div><div class="fw-semibold">{{ totals.count|default:0 }}</div></div>
+      <div class="col"><div class="stat-label small text-body-secondary">{% translate "Hectares" %}</div><div class="fw-semibold num">{{ totals.hectares|default:0|number:1 }}</div></div>
+      <div class="col"><div class="stat-label small text-body-secondary">{% translate "Charged" %}</div><div class="fw-semibold money">{{ totals.charged|default:0|money }}</div></div>
+      <div class="col"><div class="stat-label small text-body-secondary">{% translate "Avg / ha" %}</div><div class="fw-semibold money">{{ totals.price_per_ha|money }}</div></div>
+    </div>
+  </div>
+  <div class="list-group list-group-flush">
+    {% for job in jobs %}
+    <a class="list-group-item list-group-item-action" href="{{ job.get_absolute_url }}">
+      <div class="d-flex flex-wrap gap-2">
+        <span class="me-auto"><strong>{{ job.number }}</strong> · {{ job.start_date|date:"SHORT_DATE_FORMAT"|default:"—" }}</span>
+        <span class="num">{{ job.total_hectares|number:2 }} ha</span>
+        <span class="money">{{ job.total_amount|money }}</span>
+      </div>
+      <div class="small text-body-secondary">{{ job.operation_type }}{% if job.crop %} · {{ job.crop }}{% endif %} · {% include "jobs/partials/status_badge.html" %}</div>
+    </a>
+    {% empty %}
+    <div class="list-group-item text-body-secondary small">{% translate "No jobs yet." %}</div>
+    {% endfor %}
+  </div>
+</div>

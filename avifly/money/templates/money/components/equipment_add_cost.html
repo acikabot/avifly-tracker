@@ -1,0 +1,1 @@
+{% load i18n %}<a class="btn btn-outline-primary" href="{% url 'money:cost_add' %}?equipment={{ object.pk }}&next={{ object.get_absolute_url|urlencode }}"><i class="bi bi-receipt"></i> {% translate "Add cost" %}</a>

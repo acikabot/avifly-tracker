@@ -1,0 +1,20 @@
+{% load i18n avifly %}
+<form class="row g-2 align-items-end mb-3" method="get" data-autosubmit>
+  <div class="col-12 col-sm-auto">
+    <label class="form-label small mb-1" for="{{ period_form.period.auto_id }}">{% translate "Period" %}</label>
+    {% render_widget period_form.period "form-select-sm" %}
+  </div>
+  <div class="col-6 col-sm-auto">
+    <label class="form-label small mb-1" for="{{ period_form.start.auto_id }}">{% translate "From" %}</label>
+    {% render_widget period_form.start "form-control-sm" %}
+  </div>
+  <div class="col-6 col-sm-auto">
+    <label class="form-label small mb-1" for="{{ period_form.end.auto_id }}">{% translate "To" %}</label>
+    {% render_widget period_form.end "form-control-sm" %}
+  </div>
+  {% for field in extra_filters %}
+  <div class="col-6 col-sm-auto">{% render_widget field "form-select-sm" %}</div>
+  {% endfor %}
+  <div class="col-auto"><button class="btn btn-sm btn-secondary" type="submit">{% translate "Show" %}</button></div>
+  <div class="col-auto small text-body-secondary">{% if period.start %}{{ period.start|date:"d.m.Y" }} – {{ period.end|date:"d.m.Y" }}{% else %}{% translate "All time" %}{% endif %}</div>
+</form>

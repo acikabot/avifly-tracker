@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Roles & permissions" %}{% endblock %}
+{% block content %}
+{% url 'core:settings' as back_url %}
+{% include "core/partials/page_header.html" with title=_("Roles & permissions") back_url=back_url back_label=_("Settings") %}
+<p class="text-body-secondary">{% translate "Owners can do everything. Everyone else gets exactly what their role allows." %}</p>
+<div class="mb-3"><a class="btn btn-primary" href="{% url 'accounts:role_add' %}"><i class="bi bi-plus-lg"></i> {% translate "New role" %}</a></div>
+<div class="card">
+  <ul class="list-group list-group-flush">
+    {% for role in roles %}
+    <a class="list-group-item list-group-item-action d-flex" href="{% url 'accounts:role_edit' role.pk %}">
+      <span class="me-auto">{{ role.name }}</span>
+      <span class="text-body-secondary small">{% blocktranslate count counter=role.people %}{{ counter }} person{% plural %}{{ counter }} people{% endblocktranslate %}</span>
+    </a>
+    {% empty %}
+    <li class="list-group-item text-body-secondary">{% translate "No roles yet. Create one before approving someone who isn't an owner." %}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

@@ -1,0 +1,137 @@
+/* Avifly — a few additions on top of Bootstrap. Plain and readable in sunlight. */
+
+body {
+  background: #f4f5f7;
+}
+
+.card {
+  border-color: #e3e6ea;
+}
+
+.form-card {
+  max-width: 720px;
+}
+
+.page-header h1 {
+  word-break: break-word;
+}
+
+/* Amounts and hectares line up in tables. */
+.num,
+.money {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.stat {
+  padding: 0.75rem 1rem;
+}
+.stat .stat-label {
+  font-size: 0.8rem;
+  color: var(--bs-secondary-color);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.stat .stat-value {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #0b0b0b;
+}
+.stat .stat-delta {
+  font-size: 0.8rem;
+}
+.delta-good {
+  color: #006300;
+}
+.delta-bad {
+  color: #d03b3b;
+}
+.stat .stat-note {
+  font-size: 0.8rem;
+  color: var(--bs-secondary-color);
+}
+
+.quick-actions {
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+/* Big, thumb-friendly buttons on phones. */
+@media (max-width: 575.98px) {
+  .btn-touch {
+    padding: 0.75rem 1rem;
+    font-size: 1.1rem;
+  }
+  main {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
+.map {
+  height: 320px;
+  border-radius: var(--bs-border-radius);
+  z-index: 0;
+}
+.map-tall {
+  height: 460px;
+}
+
+.day-card .card-header {
+  background: #eef3ff;
+}
+
+.history summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.table td,
+.table th {
+  vertical-align: middle;
+}
+
+.chart {
+  width: 100%;
+  height: 320px;
+}
+
+.ts-wrapper.form-select,
+.ts-wrapper.form-control {
+  padding: 0;
+}
+
+.messages .alert {
+  margin-bottom: 0.75rem;
+}
+
+.auth-container {
+  max-width: 440px;
+}
+
+/* Job form: day headers and "add day" only show for multi-day jobs. */
+.job-form:not(.is-multi-day) .multi-only {
+  display: none !important;
+}
+
+.save-bar {
+  position: sticky;
+  bottom: 0;
+  padding: 0.75rem 0;
+  background: linear-gradient(to top, #f4f5f7 70%, rgba(244, 245, 247, 0));
+  z-index: 5;
+}
+
+.chart-calendar {
+  height: 210px;
+}
+
+.chart-table summary {
+  cursor: pointer;
+}
+
+/* Time inputs next to their "now" buttons stay readable on narrow phones. */
+.day-card input[type="time"] {
+  min-width: 0;
+  padding-left: 0.5rem;
+  padding-right: 0.25rem;
+}

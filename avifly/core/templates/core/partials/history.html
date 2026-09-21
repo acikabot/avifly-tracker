@@ -1,0 +1,26 @@
+{% load i18n %}{% if entries is not None %}
+<details class="card mt-3 history">
+  <summary class="card-header">{% translate "Change history" %}</summary>
+  {% if entries %}
+  <ul class="list-group list-group-flush small">
+    {% for entry in entries %}
+    <li class="list-group-item">
+      <div class="d-flex flex-wrap gap-2">
+        <strong>{{ entry.get_action_display|capfirst }}</strong>
+        <span class="text-body-secondary">{{ entry.timestamp|date:"SHORT_DATETIME_FORMAT" }} · {{ entry.actor.display_name|default:_("system") }}</span>
+      </div>
+      {% if entry.action == 1 %}
+      <ul class="mb-0 ps-3">
+        {% for field, change in entry.changes_display_dict.items %}
+        <li>{{ field|capfirst }}: <span class="text-body-secondary">{{ change.0|default:"—" }}</span> → {{ change.1|default:"—" }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="card-body small text-body-secondary">{% translate "No changes recorded yet." %}</div>
+  {% endif %}
+</details>
+{% endif %}

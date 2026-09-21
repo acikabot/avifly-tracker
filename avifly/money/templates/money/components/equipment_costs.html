@@ -1,0 +1,11 @@
+{% load i18n avifly %}
+<div class="card mb-3">
+  <div class="card-header d-flex"><span class="fw-semibold me-auto">{% translate "Costs" %}</span><strong class="money">{{ total|money }}</strong></div>
+  <ul class="list-group list-group-flush small">
+    {% for cost in costs %}
+    <a class="list-group-item list-group-item-action d-flex gap-2" href="{{ cost.get_absolute_url }}"><span class="me-auto">{{ cost.date|date:"d.m.Y" }} · {{ cost.description }} <span class="text-body-secondary">({{ cost.category }})</span></span><span class="money">{{ cost.amount|money:None }}</span></a>
+    {% empty %}
+    <li class="list-group-item text-body-secondary">{% translate "No costs linked to this equipment." %}</li>
+    {% endfor %}
+  </ul>
+</div>

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% block title %}{% translate "Field" %}{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'vendor/leaflet/leaflet.css' %}">{% endblock %}
+{% block content %}
+{% if object %}{% include "core/partials/page_header.html" with title=object.name subtitle=customer.name back_url=customer.get_absolute_url back_label=customer.name %}
+{% else %}{% include "core/partials/page_header.html" with title=_("New field") subtitle=customer.name back_url=customer.get_absolute_url back_label=customer.name %}{% endif %}
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  <div class="row g-3">
+    <div class="col-lg-5">
+      <div class="card"><div class="card-body">
+        {% if form.non_field_errors %}<div class="alert alert-danger py-2">{{ form.non_field_errors }}</div>{% endif %}
+        {{ form.name.as_field_group }}
+        {{ form.hectares.as_field_group }}
+        {{ form.coordinates.as_field_group }}
+        <div class="row g-2">
+          <div class="col">{{ form.latitude.as_field_group }}</div>
+          <div class="col">{{ form.longitude.as_field_group }}</div>
+        </div>
+        <button class="btn btn-outline-primary mb-3" type="button" data-geolocate
+                data-lat-target="{{ form.latitude.auto_id }}" data-lng-target="{{ form.longitude.auto_id }}"
+                data-insecure-message="{% translate 'Your location is only available once the app runs over HTTPS. Tap the map instead.' %}">
+          <i class="bi bi-crosshair"></i> {% translate "Use my location" %}
+        </button>
+        {{ form.notes.as_field_group }}
+        {{ form.is_active.as_field_group }}
+        <button class="btn btn-primary btn-touch" type="submit">{% translate "Save" %}</button>
+        {% if object %}<a class="btn btn-link text-danger" href="{% url 'customers:field_delete' object.pk %}">{% translate "Delete field" %}</a>{% endif %}
+      </div></div>
+    </div>
+    <div class="col-lg-7">
+      <div class="map map-tall" data-map-picker data-lat-input="{{ form.latitude.auto_id }}" data-lng-input="{{ form.longitude.auto_id }}"></div>
+      <div class="form-text">{% translate "Tap the map to set the field's location." %}</div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
+<script src="{% static 'core/map.js' %}"></script>
+{% endblock %}

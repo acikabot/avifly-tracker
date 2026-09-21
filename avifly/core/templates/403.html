@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Not allowed" %}{% endblock %}
+{% block content %}
+<div class="text-center py-5">
+  <i class="bi bi-shield-lock display-4 text-body-secondary"></i>
+  <h1 class="h3 mt-3">{% translate "You don't have access to this page" %}</h1>
+  <p class="text-body-secondary">{% translate "Ask an owner to give your role access if you need it." %}</p>
+  <a class="btn btn-primary" href="{% url 'core:dashboard' %}">{% translate "Back to the dashboard" %}</a>
+</div>
+{% endblock %}

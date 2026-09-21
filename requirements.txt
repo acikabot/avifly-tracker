@@ -1,0 +1,10 @@
+# Runtime dependencies (pinned). Install with: pip install -r requirements.txt
+Django==5.2.17              # LTS, supported until April 2028
+django-allauth[mfa]==65.19.4  # sign-up, login, email verification, password reset, 2FA
+django-auditlog==3.4.1      # change history
+django-environ==0.14.0      # configuration from .env / environment
+whitenoise==6.12.0          # static files
+gunicorn==26.2.0            # production server
+Pillow==12.3.0              # photo/receipt resizing
+PyJWT[crypto]==2.14.0       # Cloudflare Access token verification
+Markdown==3.10.3            # renders the project's own documentation inside the app

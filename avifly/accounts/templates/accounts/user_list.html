@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load i18n avifly %}
+{% block title %}{% translate "Users" %}{% endblock %}
+{% block content %}
+{% url 'core:settings' as back_url %}
+{% include "core/partials/page_header.html" with title=_("Users") back_url=back_url back_label=_("Settings") %}
+
+<div class="card mb-3{% if pending %} border-warning{% endif %}">
+  <div class="card-header fw-semibold">{% translate "Waiting for approval" %} <span class="badge text-bg-{% if pending %}warning{% else %}secondary{% endif %}">{{ pending|length }}</span></div>
+  {% if pending %}
+  <ul class="list-group list-group-flush">
+    {% for person, form in pending %}
+    <li class="list-group-item">
+      <div class="d-flex flex-wrap gap-2 align-items-baseline mb-2">
+        <strong>{{ person.display_name }}</strong>
+        <span class="text-body-secondary">@{{ person.username }} · {{ person.email }}</span>
+        <span class="text-body-secondary small ms-auto">{% blocktranslate with when=person.date_joined|date:"SHORT_DATETIME_FORMAT" %}Signed up {{ when }}{% endblocktranslate %}</span>
+      </div>
+      <div class="d-flex flex-wrap align-items-end gap-2">
+        <form class="d-flex flex-wrap align-items-end gap-2" method="post" action="{% url 'accounts:approve' person.pk %}">
+          {% csrf_token %}
+          <div>
+            <label class="form-label small mb-1" for="{{ form.role.auto_id }}">{% translate "Role" %}</label>
+            {% render_widget form.role "form-select-sm" %}
+          </div>
+          {% if form.make_owner %}
+          <div class="form-check mb-2">
+            {% render_widget form.make_owner %}
+            <label class="form-check-label" for="{{ form.make_owner.auto_id }}">{% translate "Owner" %}</label>
+          </div>
+          {% endif %}
+          <button class="btn btn-success" type="submit"><i class="bi bi-check-lg"></i> {% translate "Approve" %}</button>
+        </form>
+        <form method="post" action="{% url 'accounts:reject' person.pk %}" data-confirm="{% translate 'Reject and delete this sign-up?' %}">
+          {% csrf_token %}
+          <button class="btn btn-outline-danger" type="submit">{% translate "Reject" %}</button>
+        </form>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="card-body text-body-secondary small">{% translate "Nobody is waiting." %}</div>
+  {% endif %}
+</div>
+
+<div class="card mb-3">
+  <div class="card-header fw-semibold">{% translate "Active" %}</div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr>
+        <th>{% translate "Name" %}</th>
+        <th class="d-none d-md-table-cell">{% translate "E-mail" %}</th>
+        <th>{% translate "Role" %}</th>
+        <th class="d-none d-md-table-cell">{% translate "Last sign-in" %}</th>
+        <th></th>
+      </tr></thead>
+      <tbody>
+      {% for person in active %}
+        <tr>
+          <td>{{ person.display_name }} <div class="small text-body-secondary">@{{ person.username }}</div></td>
+          <td class="d-none d-md-table-cell">{{ person.email }}</td>
+          <td>{% if person.is_superuser %}<span class="badge text-bg-dark">{% translate "Owner" %}</span>{% else %}{{ person.role_label }}{% endif %}</td>
+          <td class="d-none d-md-table-cell small">{{ person.last_login|date:"SHORT_DATETIME_FORMAT"|default:"—" }}</td>
+          <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_access' person.pk %}">{% translate "Access" %}</a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if inactive %}
+<div class="card">
+  <div class="card-header fw-semibold">{% translate "Deactivated" %}</div>
+  <ul class="list-group list-group-flush">
+    {% for person in inactive %}
+    <li class="list-group-item d-flex align-items-center">
+      <span class="me-auto">{{ person.display_name }} <span class="small text-body-secondary">@{{ person.username }}</span></span>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_access' person.pk %}">{% translate "Access" %}</a>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% endblock %}

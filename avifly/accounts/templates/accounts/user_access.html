@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load i18n avifly %}
+{% block title %}{{ person.display_name }}{% endblock %}
+{% block content %}
+{% url 'accounts:users' as back_url %}
+{% include "core/partials/page_header.html" with title=person.display_name subtitle=person.email back_url=back_url back_label=_("Users") %}
+<div class="card form-card">
+  <div class="card-body">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {{ form }}
+      <button class="btn btn-primary" type="submit">{% translate "Save" %}</button>
+      <a class="btn btn-link" href="{{ back_url }}">{% translate "Cancel" %}</a>
+    </form>
+  </div>
+</div>
+{% history person %}
+{% endblock %}

@@ -1,0 +1,7 @@
+{% load allauth %}
+<form method="{{ attrs.method }}" {% if attrs.action %}action="{{ attrs.action }}"{% endif %} novalidate>
+  {% slot body %}{% endslot %}
+  <div class="{% if 'entrance' in attrs.tags %}d-grid{% else %}d-flex flex-wrap{% endif %} gap-2 mt-3">
+    {% slot actions %}{% endslot %}
+  </div>
+</form>

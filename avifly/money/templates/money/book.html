@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load i18n avifly %}
+{% block title %}{% translate "Money" %}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <h1 class="h3 mb-0 me-auto">{% translate "Money" %}</h1>
+  <a class="btn btn-outline-secondary" href="?{% query export='csv' %}"><i class="bi bi-download"></i> CSV</a>
+  {% if perms.money.add_cost %}<a class="btn btn-primary" href="{% url 'money:cost_add' %}"><i class="bi bi-receipt"></i> {% translate "Add cost" %}</a>{% endif %}
+</div>
+{% include "money/partials/tabs.html" with active="book" %}
+
+<div class="row g-3 mb-3">
+  {% include "money/partials/summary_card.html" with summary=month title=_("This month") %}
+  {% include "money/partials/summary_card.html" with summary=season title=season.period.label %}
+</div>
+
+{% include "core/partials/period_form.html" %}
+
+<div class="card">
+  <div class="card-header d-flex flex-wrap gap-3 small">
+    <span>{% translate "Opening balance" %}: <strong class="money">{{ opening|money }}</strong></span>
+    <span class="text-success">{% translate "In" %}: <strong class="money">{{ total_in|money }}</strong></span>
+    <span class="text-danger">{% translate "Out" %}: <strong class="money">{{ total_out|money }}</strong></span>
+    <span>{% translate "Closing balance" %}: <strong class="money">{{ closing|money }}</strong></span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr>
+        <th>{% translate "Date" %}</th><th>{% translate "What" %}</th>
+        <th class="text-end">{% translate "Amount" %}</th><th class="text-end d-none d-sm-table-cell">{% translate "Balance" %}</th>
+      </tr></thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td class="small text-nowrap">{{ row.date|date:"d.m.Y" }}</td>
+          <td><a href="{{ row.url }}">{{ row.label }}</a><div class="small text-body-secondary">{{ row.detail }}</div></td>
+          <td class="text-end money {% if row.kind == 'in' %}text-success{% else %}text-danger{% endif %}">{% if row.kind == 'in' %}+{% else %}−{% endif %}{{ row.amount|money:None }}</td>
+          <td class="text-end money d-none d-sm-table-cell">{{ row.balance|money:None }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-body-secondary">{% translate "No money in or out in this period." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

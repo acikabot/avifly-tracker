@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% if object %}{{ object.description }}{% else %}{% translate "Add cost" %}{% endif %}{% endblock %}
+{% block content %}
+{% url 'money:costs' as back_url %}
+{% if object %}{% include "core/partials/page_header.html" with title=object.description back_url=back_url back_label=_("Costs") %}
+{% else %}{% include "core/partials/page_header.html" with title=_("Add cost") back_url=back_url back_label=_("Costs") %}{% endif %}
+<div class="card form-card">
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      {{ form }}
+      {% if object.receipt %}<p><a href="{{ object.receipt_url }}" target="_blank" rel="noopener"><i class="bi bi-paperclip"></i> {% translate "Open receipt" %}</a></p>{% endif %}
+      <button class="btn btn-primary btn-touch" type="submit">{% translate "Save" %}</button>
+      {% if object and perms.money.delete_cost %}<a class="btn btn-link text-danger" href="{% url 'money:cost_delete' object.pk %}">{% translate "Delete" %}</a>{% endif %}
+    </form>
+  </div>
+</div>
+{% if object %}{% load avifly %}{% history object %}{% endif %}
+{% endblock %}

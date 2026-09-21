@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "My account" %}{% endblock %}
+{% block content %}
+{% include "core/partials/page_header.html" with title=_("My account") subtitle=user.username %}
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h5">{% translate "Your name" %}</h2>
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {{ form }}
+          <button class="btn btn-primary" type="submit">{% translate "Save" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h5">{% translate "Sign-in & security" %}</h2>
+        <p class="mb-2">{% translate "Role" %}: <strong>{{ user.role_label }}</strong></p>
+        <div class="list-group">
+          <a class="list-group-item list-group-item-action" href="{% url 'account_email' %}"><i class="bi bi-envelope"></i> {% translate "E-mail addresses" %}</a>
+          <a class="list-group-item list-group-item-action" href="{% url 'account_change_password' %}"><i class="bi bi-key"></i> {% translate "Change password" %}</a>
+          <a class="list-group-item list-group-item-action" href="{% url 'mfa_index' %}"><i class="bi bi-shield-check"></i> {% translate "Two-step login (authenticator app)" %}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load i18n avifly %}
+{% block title %}{% translate "Costs" %}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <h1 class="h3 mb-0 me-auto">{% translate "Money" %}</h1>
+  <a class="btn btn-outline-secondary" href="?{% query export='csv' page=None %}"><i class="bi bi-download"></i> CSV</a>
+  {% if perms.money.add_cost %}<a class="btn btn-primary" href="{% url 'money:cost_add' %}"><i class="bi bi-receipt"></i> {% translate "Add cost" %}</a>{% endif %}
+</div>
+{% include "money/partials/tabs.html" with active="costs" %}
+{% include "core/partials/period_form.html" with extra_filters=filters %}
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header d-flex"><span class="me-auto fw-semibold">{% translate "Costs" %}</span><strong class="money">{{ total|money }}</strong></div>
+      <div class="list-group list-group-flush">
+        {% for cost in object_list %}
+        <a class="list-group-item list-group-item-action" href="{{ cost.get_absolute_url }}">
+          <div class="d-flex flex-wrap gap-2">
+            <span class="me-auto"><strong>{{ cost.description }}</strong>{% if cost.receipt %} <i class="bi bi-paperclip" title="{% translate 'receipt' %}"></i>{% endif %}</span>
+            <span class="money">{{ cost.amount|money }}</span>
+          </div>
+          <div class="small text-body-secondary">{{ cost.date|date:"d.m.Y" }} · {{ cost.category }}{% if cost.equipment %} · {{ cost.equipment }}{% endif %}{% if cost.job %} · {{ cost.job.number }}{% endif %}</div>
+        </a>
+        {% empty %}
+        <div class="list-group-item text-body-secondary">{% translate "No costs in this period." %}</div>
+        {% endfor %}
+      </div>
+    </div>
+    {% include "core/partials/pagination.html" %}
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header fw-semibold">{% translate "By category" %}</div>
+      <ul class="list-group list-group-flush">
+        {% for row in by_category %}
+        <li class="list-group-item d-flex"><span class="me-auto">{{ row.category__name }}</span><span class="money">{{ row.total|money }}</span></li>
+        {% empty %}
+        <li class="list-group-item text-body-secondary small">—</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

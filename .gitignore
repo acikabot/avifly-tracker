@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Configuration and secrets: never committed
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.cloudflared/
+
+# Runtime data: database, uploads, cache, logs, e-mails (live and development copies)
+var/
+var-dev/
+*.sqlite3
+*.sqlite3-*
+
+# Editors / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Private notes for whoever runs the server: served in the app, never pushed
+docs/_*.md

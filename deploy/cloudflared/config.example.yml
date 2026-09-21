@@ -1,0 +1,12 @@
+# Cloudflare Tunnel config (copy to ~/.cloudflared/config.yml). See README → Going public.
+# Create the tunnel with:  cloudflared tunnel create avifly
+tunnel: <TUNNEL-ID>
+credentials-file: /home/pi/.cloudflared/<TUNNEL-ID>.json
+
+ingress:
+  # Only the app is exposed; everything else on the machine stays private. The service is
+  # plain http on purpose: the app speaks HTTP behind cloudflared, and this hop never
+  # leaves the machine. (https here makes cloudflared hang on a TLS handshake.)
+  - hostname: app.example.com
+    service: http://127.0.0.1:8000
+  - service: http_status:404

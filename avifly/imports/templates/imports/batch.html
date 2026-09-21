@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load i18n avifly %}
+{% block title %}{{ batch.original_name }}{% endblock %}
+{% block content %}
+{% url 'imports:index' as back_url %}
+{% include "core/partials/page_header.html" with title=batch.original_name back_url=back_url back_label=_("Imports") %}
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  <div class="card mb-3">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead><tr>
+          <th></th><th>{% translate "Date" %}</th><th>{% translate "Time" %}</th>
+          <th class="text-end">{% translate "Hectares" %}</th><th>{% translate "Drone" %}</th><th>{% translate "Status" %}</th>
+        </tr></thead>
+        <tbody>
+          {% for row in rows %}
+          <tr>
+            <td>{% if row.status == "new" %}<input class="form-check-input" type="checkbox" name="rows" value="{{ row.pk }}" checked aria-label="{% translate 'Import this record' %}">{% endif %}</td>
+            <td>{{ row.date|date:"d.m.Y" }}</td>
+            <td class="num">{{ row.start_time|time:"H:i"|default:"—" }} → {{ row.end_time|time:"H:i"|default:"—" }}</td>
+            <td class="text-end num">{{ row.hectares|number:2 }}</td>
+            <td class="small">{{ row.equipment_serial|default:"—" }}</td>
+            <td class="small">
+              {% if row.status == "applied" and row.job_day %}<a href="{{ row.job_day.job.get_absolute_url }}">{{ row.job_day.job.number }}</a>
+              {% else %}{{ row.get_status_display }}{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card form-card">
+    <div class="card-body">
+      {{ form.job.as_field_group }}
+      <div class="form-text mb-3">{% translate "Each ticked record becomes a day on the job. If the job has a planned day with nothing filled in, the first record fills it." %}</div>
+      <button class="btn btn-primary" type="submit"><i class="bi bi-box-arrow-in-down"></i> {% translate "Add to job" %}</button>
+    </div>
+  </div>
+</form>
+{% endblock %}

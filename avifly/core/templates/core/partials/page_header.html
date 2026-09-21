@@ -1,0 +1,11 @@
+{% comment %}
+  Page title with an optional back link and action buttons.
+  Usage: {% include "core/partials/page_header.html" with title="…" back_url=… back_label=… %}
+  Put buttons in a {% block actions %} of the including template instead when needed.
+{% endcomment %}
+<div class="page-header d-flex flex-wrap align-items-center gap-2 mb-3">
+  <div class="me-auto">
+    {% if back_url %}<a class="small text-decoration-none" href="{{ back_url }}"><i class="bi bi-chevron-left"></i> {{ back_label }}</a>{% endif %}
+    <h1 class="h3 mb-0">{{ title }}{% if subtitle %} <small class="text-body-secondary fs-6">{{ subtitle }}</small>{% endif %}</h1>
+  </div>
+</div>

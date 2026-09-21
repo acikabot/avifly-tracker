@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Delete" %}{% endblock %}
+{% block content %}
+<div class="card form-card border-danger-subtle">
+  <div class="card-body">
+    <h1 class="h4">{% blocktranslate with object=object %}Delete {{ object }}?{% endblocktranslate %}</h1>
+    {% if blocked_reason %}
+      <div class="alert alert-warning">{{ blocked_reason }}</div>
+      <a class="btn btn-secondary" href="{{ cancel_url }}">{% translate "Back" %}</a>
+    {% else %}
+      <p>{% translate "It will be moved to the bin, where it can be restored later." %}</p>
+      <form method="post">
+        {% csrf_token %}
+        <button class="btn btn-danger" type="submit"><i class="bi bi-trash3"></i> {% translate "Delete" %}</button>
+        <a class="btn btn-link" href="{{ cancel_url }}">{% translate "Cancel" %}</a>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

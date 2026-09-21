@@ -1,0 +1,41 @@
+[project]
+name = "avifly-tracker"
+version = "0.1.0"
+description = "Self-hosted job, money and analytics tracker for a drone crop-spraying business."
+readme = "README.md"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["static/vendor", "var", "*.md"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W", "F",  # pycodestyle, pyflakes
+    "I",            # import order
+    "B",            # bugbear
+    "UP",           # pyupgrade
+    "DJ",           # django
+    "SIM", "C4", "PIE", "RUF",
+    "PT",           # pytest style
+]
+ignore = [
+    "RUF012",  # mutable class attributes are idiomatic in Django (Meta, fields, …)
+    "RUF001", "RUF002", "RUF003",  # typographic characters (× “ ” –) are intended in UI text
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["avifly", "config"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/migrations/*.py" = ["E501", "RUF", "I"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.test_settings"
+python_files = ["test_*.py"]
+testpaths = ["avifly"]
+addopts = "-q --strict-markers"
+filterwarnings = [
+    "ignore::DeprecationWarning:allauth.*",
+]

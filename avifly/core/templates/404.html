@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Not found" %}{% endblock %}
+{% block content %}
+<div class="text-center py-5">
+  <i class="bi bi-signpost-split display-4 text-body-secondary"></i>
+  <h1 class="h3 mt-3">{% translate "Page not found" %}</h1>
+  <p class="text-body-secondary">{% translate "It may have been moved to the bin or never existed." %}</p>
+  <a class="btn btn-primary" href="/">{% translate "Back to the dashboard" %}</a>
+</div>
+{% endblock %}

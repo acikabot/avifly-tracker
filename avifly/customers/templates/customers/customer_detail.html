@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load i18n static avifly %}
+{% block title %}{{ object.name }}{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'vendor/leaflet/leaflet.css' %}">{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <div class="me-auto">
+    <a class="small text-decoration-none" href="{% url 'customers:list' %}"><i class="bi bi-chevron-left"></i> {% translate "Customers" %}</a>
+    <h1 class="h3 mb-0">{{ object.name }}{% if not object.is_active %} <span class="badge text-bg-secondary fs-6">{% translate "inactive" %}</span>{% endif %}</h1>
+    {% if object.company_name %}<div class="text-body-secondary">{{ object.company_name }}</div>{% endif %}
+  </div>
+  {% render_slot "customers.customer_actions" object %}
+  {% if perms.customers.change_customer %}
+  <a class="btn btn-outline-secondary" href="{% url 'customers:edit' object.pk %}"><i class="bi bi-pencil"></i> {% translate "Edit" %}</a>
+  {% endif %}
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-5">
+    <div class="card mb-3">
+      <div class="card-body">
+        {% if object.phone %}
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <a class="btn btn-success btn-touch" href="tel:{{ object.phone_link }}"><i class="bi bi-telephone"></i> {% translate "Call" %}</a>
+          <a class="btn btn-outline-secondary btn-touch" href="viber://chat?number={{ object.phone_link|urlencode }}"><i class="bi bi-chat-dots"></i> Viber</a>
+          <a class="btn btn-outline-secondary btn-touch" href="https://wa.me/{{ object.phone_link|cut:'+' }}"><i class="bi bi-whatsapp"></i> WhatsApp</a>
+        </div>
+        {% endif %}
+        <dl class="row mb-0 small">
+          {% if object.phone %}<dt class="col-4">{% translate "Phone" %}</dt><dd class="col-8">{{ object.phone }}{% if object.phone_alt %}<br>{{ object.phone_alt }}{% endif %}</dd>{% endif %}
+          {% if object.email %}<dt class="col-4">{% translate "E-mail" %}</dt><dd class="col-8"><a href="mailto:{{ object.email }}">{{ object.email }}</a></dd>{% endif %}
+          {% if object.town or object.address %}<dt class="col-4">{% translate "Address" %}</dt><dd class="col-8">{{ object.address }}{% if object.address and object.town %}, {% endif %}{{ object.town }}</dd>{% endif %}
+          {% if object.tax_number %}<dt class="col-4">{% translate "Tax number" %}</dt><dd class="col-8">{{ object.tax_number }}</dd>{% endif %}
+          <dt class="col-4">{% translate "Rate" %}</dt><dd class="col-8">{% if object.special_rate_per_ha is not None %}{{ object.special_rate_per_ha|money }} / ha <span class="badge text-bg-info">{% translate "special" %}</span>{% else %}{% translate "normal rate" %}{% endif %}</dd>
+        </dl>
+        {% if object.notes %}<hr><div class="small">{{ object.notes|linebreaksbr }}</div>{% endif %}
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header d-flex align-items-center">
+        <span class="fw-semibold me-auto">{% translate "Fields" %}</span>
+        {% if perms.customers.change_customer %}<a class="btn btn-sm btn-outline-primary" href="{% url 'customers:field_add' object.pk %}"><i class="bi bi-plus-lg"></i> {% translate "Add field" %}</a>{% endif %}
+      </div>
+      {% if map_points %}
+      <div class="map" data-map-points="field-points"></div>
+      {{ map_points|json_script:"field-points" }}
+      {% endif %}
+      <ul class="list-group list-group-flush">
+        {% for field in farm_fields %}
+        <li class="list-group-item" id="field-{{ field.pk }}">
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <strong class="me-auto">{{ field.name }}{% if not field.is_active %} <span class="badge text-bg-secondary">{% translate "inactive" %}</span>{% endif %}</strong>
+            <span class="num small">{{ field.hectares|hectares }}</span>
+            {% if field.navigation_url %}<a class="btn btn-sm btn-outline-secondary" href="{{ field.navigation_url }}" target="_blank" rel="noopener"><i class="bi bi-sign-turn-right"></i> {% translate "Navigate" %}</a>{% endif %}
+            {% if perms.customers.change_customer %}<a class="btn btn-sm btn-outline-secondary" href="{% url 'customers:field_edit' field.pk %}"><i class="bi bi-pencil"></i></a>{% endif %}
+          </div>
+          {% if field.has_location %}<div class="small text-body-secondary">{{ field.latitude }}, {{ field.longitude }}</div>{% endif %}
+          {% if field.notes %}<div class="small">{{ field.notes|linebreaksbr }}</div>{% endif %}
+        </li>
+        {% empty %}
+        <li class="list-group-item text-body-secondary small">{% translate "No fields yet." %}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    {% render_slot "customers.customer_detail" object %}
+  </div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mt-2">
+  {% if perms.customers.delete_customer %}<a class="btn btn-sm btn-outline-danger" href="{% url 'customers:delete' object.pk %}"><i class="bi bi-trash3"></i> {% translate "Delete customer" %}</a>{% endif %}
+</div>
+{% history object %}
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
+<script src="{% static 'core/map.js' %}"></script>
+{% endblock %}

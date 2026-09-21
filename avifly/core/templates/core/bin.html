@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Bin" %}{% endblock %}
+{% block content %}
+{% url 'core:settings' as back_url %}
+{% include "core/partials/page_header.html" with title=_("Bin") back_url=back_url back_label=_("Settings") %}
+<p class="text-body-secondary">{% translate "Deleted items stay here until they are restored or deleted permanently." %}</p>
+
+{% for trashable, items in sections %}
+<div class="card mb-3">
+  <div class="card-header fw-semibold">{{ trashable.label }} <span class="badge text-bg-secondary">{{ items|length }}</span></div>
+  {% if items %}
+  <ul class="list-group list-group-flush">
+    {% for item in items %}
+    <li class="list-group-item d-flex flex-wrap align-items-center gap-2">
+      <div class="me-auto">
+        <div>{{ item }}</div>
+        <div class="small text-body-secondary">{% blocktranslate with when=item.deleted_at|date:"SHORT_DATETIME_FORMAT" who=item.deleted_by.display_name|default:"—" %}Deleted {{ when }} by {{ who }}{% endblocktranslate %}</div>
+      </div>
+      <form method="post" action="{% url 'core:restore' trashable.key item.pk %}">{% csrf_token %}
+        <button class="btn btn-sm btn-outline-primary" type="submit"><i class="bi bi-arrow-counterclockwise"></i> {% translate "Restore" %}</button>
+      </form>
+      {% if user.is_superuser %}
+      <form method="post" action="{% url 'core:purge' trashable.key item.pk %}" data-confirm="{% translate 'Delete permanently? This cannot be undone.' %}">{% csrf_token %}
+        <button class="btn btn-sm btn-outline-danger" type="submit">{% translate "Delete permanently" %}</button>
+      </form>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="card-body text-body-secondary small">{% translate "Empty." %}</div>
+  {% endif %}
+</div>
+{% endfor %}
+{% endblock %}

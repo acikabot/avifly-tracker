@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load i18n avifly %}
+{% block title %}{% translate "Role" %}{% endblock %}
+{% block content %}
+{% url 'accounts:roles' as back_url %}
+{% if form.instance.pk %}{% include "core/partials/page_header.html" with title=form.instance.name back_url=back_url back_label=_("Roles") %}
+{% else %}{% include "core/partials/page_header.html" with title=_("New role") back_url=back_url back_label=_("Roles") %}{% endif %}
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="card mb-3 form-card"><div class="card-body">{{ form.name.as_field_group }}</div></div>
+
+  <div class="card mb-3">
+    <div class="card-header fw-semibold">{% translate "What this role can do" %}</div>
+    <ul class="list-group list-group-flush">
+      {% for row in form.rows %}
+      <li class="list-group-item">
+        <div class="fw-semibold mb-1">{{ row.section.label }}</div>
+        <div class="d-flex flex-wrap gap-3 align-items-center">
+          {% for field in row.actions %}
+          <div class="form-check">
+            {% render_widget field %}
+            <label class="form-check-label" for="{{ field.auto_id }}">{{ field.label }}</label>
+          </div>
+          {% endfor %}
+          {% if row.scope %}
+          <div class="d-flex align-items-center gap-2">
+            <label class="small text-body-secondary" for="{{ row.scope.auto_id }}">{{ row.scope.label }}</label>
+            {% render_widget row.scope "form-select-sm w-auto" %}
+          </div>
+          {% endif %}
+          {% for field in row.extras %}
+          <div class="form-check">
+            {% render_widget field %}
+            <label class="form-check-label" for="{{ field.auto_id }}">{{ field.label }}</label>
+          </div>
+          {% endfor %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  <button class="btn btn-primary" type="submit">{% translate "Save role" %}</button>
+  <a class="btn btn-link" href="{{ back_url }}">{% translate "Cancel" %}</a>
+</form>
+
+{% if form.instance.pk %}
+<form class="mt-4" method="post" action="{% url 'accounts:role_delete' form.instance.pk %}" data-confirm="{% translate 'Delete this role?' %}">
+  {% csrf_token %}
+  <button class="btn btn-sm btn-outline-danger" type="submit"><i class="bi bi-trash3"></i> {% translate "Delete role" %}</button>
+</form>
+{% endif %}
+{% endblock %}

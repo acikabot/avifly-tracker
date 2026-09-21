@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load i18n static avifly %}
+{% block title %}{% translate "Analytics" %}{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'vendor/leaflet/leaflet.css' %}">{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <h1 class="h3 mb-0 me-auto">{% translate "Analytics" %}</h1>
+  <span class="text-body-secondary small">{% if period.start %}{{ period.start|date:"d.m.Y" }} – {{ period.end|date:"d.m.Y" }}{% else %}{% translate "All time" %}{% endif %}</span>
+</div>
+
+{# One filter row scopes everything on the page. #}
+<form class="card card-body mb-3 py-2" method="get" data-autosubmit>
+  <div class="row g-2 align-items-end">
+    <div class="col-12 col-sm-6 col-lg-2">
+      <label class="form-label small mb-1" for="{{ period_form.period.auto_id }}">{% translate "Period" %}</label>
+      {% render_widget period_form.period "form-select-sm" %}
+    </div>
+    <div class="col-6 col-lg-2">
+      <label class="form-label small mb-1" for="{{ period_form.start.auto_id }}">{% translate "From" %}</label>
+      {% render_widget period_form.start "form-control-sm" %}
+    </div>
+    <div class="col-6 col-lg-2">
+      <label class="form-label small mb-1" for="{{ period_form.end.auto_id }}">{% translate "To" %}</label>
+      {% render_widget period_form.end "form-control-sm" %}
+    </div>
+    {% for field in period_form.filter_fields %}
+    <div class="col-6 col-lg-3">
+      <label class="form-label small mb-1" for="{{ field.auto_id }}">{{ field.label }}</label>
+      {% render_widget field "form-select-sm" %}
+    </div>
+    {% endfor %}
+    <div class="col-6 col-lg-3">
+      <label class="form-label small mb-1" for="{{ period_form.equipment_type.auto_id }}">{% translate "Compare equipment" %}</label>
+      {% render_widget period_form.equipment_type "form-select-sm" %}
+    </div>
+  </div>
+  <div class="d-flex gap-2 mt-2">
+    <button class="btn btn-sm btn-secondary" type="submit">{% translate "Show" %}</button>
+    {% if request.GET %}<a class="btn btn-sm btn-link" href="{% url 'analytics:index' %}">{% translate "Reset" %}</a>{% endif %}
+  </div>
+</form>
+
+{% if filters.splits_jobs %}
+<div class="alert alert-light border small py-2"><i class="bi bi-funnel"></i> {% translate "Filtered view: only matching jobs are counted. Costs aren't tied to operations, crops or customers, so they're left out." %}</div>
+{% endif %}
+
+{# ---- headline numbers ---- #}
+<div class="row g-2 mb-3">
+  {% for kpi in kpis %}
+  <div class="col-6 col-md-4 col-xl-3">
+    <div class="card h-100 stat">
+      <div class="stat-label">{{ kpi.label }}</div>
+      <div class="stat-value">{{ kpi.display }}</div>
+      {% if kpi.change is not None %}
+      <div class="stat-delta {% if kpi.change_is_good %}delta-good{% elif kpi.change_is_good is False %}delta-bad{% endif %}">
+        <i class="bi bi-arrow-{% if kpi.change > 0 %}up{% else %}down{% endif %}-right" aria-hidden="true"></i>
+        {{ kpi.change_abs|number }}% <span class="text-body-secondary">{% if kpi.change > 0 %}{% translate "up" %}{% else %}{% translate "down" %}{% endif %} {% translate "vs previous period" %}</span>
+      </div>
+      {% endif %}
+      {% if kpi.note %}<div class="stat-note">{{ kpi.note }}</div>{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{# ---- charts (each has a table view) ---- #}
+<div class="row g-3" id="charts" data-currency="{{ business.currency }}">
+  {% for chart in charts %}
+  <div class="{% if chart.wide %}col-12{% else %}col-lg-6{% endif %}">
+    <section class="card h-100">
+      <div class="card-body">
+        <h2 class="h6 mb-0">{{ chart.title }}</h2>
+        {% if chart.subtitle %}<div class="small text-body-secondary">{{ chart.subtitle }}</div>{% endif %}
+        {% if chart.is_empty %}
+          <div class="text-body-secondary small py-4">{% translate "No data for this period." %}</div>
+        {% else %}
+          <div class="chart mt-2{% if chart.kind == 'calendar' %} chart-calendar{% endif %}" data-chart="{{ chart.key }}" role="img" aria-label="{{ chart.title }}"></div>
+          <details class="mt-2 chart-table">
+            <summary class="small text-body-secondary">{% translate "Show as table" %}</summary>
+            <div class="table-responsive mt-2">
+              <table class="table table-sm mb-0">
+                <thead><tr>{% for column in chart.table_columns %}<th{% if not forloop.first %} class="text-end"{% endif %}>{{ column }}</th>{% endfor %}</tr></thead>
+                <tbody>
+                  {% for row in chart.table_rows %}
+                  <tr>{% for cell in row %}<td{% if not forloop.first %} class="text-end num"{% endif %}>{{ cell }}</td>{% endfor %}</tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+  {% endfor %}
+
+  <div class="col-12">
+    <section class="card">
+      <div class="card-body">
+        <h2 class="h6 mb-0">{% translate "Where you worked" %}</h2>
+        <div class="small text-body-secondary">{% translate "Fields with a location; bigger dots mean more hectares." %}</div>
+        {% if map_points %}
+        <div class="map map-tall mt-2" data-map-points="map-points"></div>
+        {% else %}
+        <div class="text-body-secondary small py-4">{% translate "No fields with a location in this period." %}</div>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+</div>
+
+{{ chart_data|json_script:"chart-data" }}
+{{ map_points|json_script:"map-points" }}
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'vendor/echarts/echarts.min.js' %}"></script>
+<script src="{% static 'analytics/analytics.js' %}"></script>
+<script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
+<script src="{% static 'core/map.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load i18n avifly %}
+{% block title %}{{ object.name }}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <div class="me-auto">
+    <a class="small text-decoration-none" href="{% url 'equipment:list' %}"><i class="bi bi-chevron-left"></i> {% translate "Equipment" %}</a>
+    <h1 class="h3 mb-0">{{ object.name }} <span class="badge {% if object.status == 'active' %}text-bg-success{% elif object.status == 'spare' %}text-bg-info{% else %}text-bg-secondary{% endif %} fs-6">{{ object.get_status_display }}</span></h1>
+  </div>
+  {% render_slot "equipment.equipment_actions" object %}
+  {% if perms.equipment.change_equipment %}<a class="btn btn-outline-secondary" href="{% url 'equipment:edit' object.pk %}"><i class="bi bi-pencil"></i> {% translate "Edit" %}</a>{% endif %}
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-body">
+        <dl class="row mb-0 small">
+          <dt class="col-5">{% translate "Type" %}</dt><dd class="col-7">{{ object.equipment_type }}</dd>
+          {% if object.model_name %}<dt class="col-5">{% translate "Model" %}</dt><dd class="col-7">{{ object.model_name }}</dd>{% endif %}
+          {% if object.serial_number %}<dt class="col-5">{% translate "Serial number" %}</dt><dd class="col-7">{{ object.serial_number }}</dd>{% endif %}
+          {% if object.purchase_date %}<dt class="col-5">{% translate "Bought on" %}</dt><dd class="col-7">{{ object.purchase_date|date:"SHORT_DATE_FORMAT" }}</dd>{% endif %}
+        </dl>
+        {% if object.notes %}<hr><div class="small">{{ object.notes|linebreaksbr }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    {% render_slot "equipment.equipment_detail" object %}
+  </div>
+</div>
+{% if perms.equipment.delete_equipment %}<a class="btn btn-sm btn-outline-danger mt-3" href="{% url 'equipment:delete' object.pk %}"><i class="bi bi-trash3"></i> {% translate "Delete" %}</a>{% endif %}
+{% history object %}
+{% endblock %}
