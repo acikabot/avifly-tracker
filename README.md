@@ -8,7 +8,7 @@ Raspberry Pi and running on the public internet behind Cloudflare.**
 ![SQLite](https://img.shields.io/badge/SQLite-WAL-003B57?logo=sqlite&logoColor=white)
 ![HTMX](https://img.shields.io/badge/HTMX-server--rendered-3366CC?logo=htmx&logoColor=white)
 ![Bootstrap 5.3](https://img.shields.io/badge/Bootstrap-5.3-7952B3?logo=bootstrap&logoColor=white)
-![85 tests passing](https://img.shields.io/badge/tests-85_passing-2EA44F?logo=pytest&logoColor=white)
+![94 tests passing](https://img.shields.io/badge/tests-94_passing-2EA44F?logo=pytest&logoColor=white)
 ![Code style: ruff](https://img.shields.io/badge/code_style-ruff-261230?logo=ruff&logoColor=D7FF64)
 ![Raspberry Pi 4](https://img.shields.io/badge/Raspberry_Pi-4-A22846?logo=raspberrypi&logoColor=white)
 ![Cloudflare Tunnel](https://img.shields.io/badge/Cloudflare-Tunnel-F38020?logo=cloudflare&logoColor=white)
@@ -29,7 +29,7 @@ no cloud server.
 **At a glance**
 
 - 9 plug-in modules, about 7,800 lines of Python and 76 server-rendered templates
-- 85 automated tests, running in about 25 seconds
+- 94 automated tests, running in about 25 seconds
 - 11 interactive charts and a map of every field worked
 - one Raspberry Pi 4, no open ports, and a sandbox rated **1.5 / 10 "OK"** by `systemd-analyze security`
 
@@ -38,7 +38,7 @@ no cloud server.
 ## What it does
 
 **Logs the work the way the work happens.** A job is one customer and one piece of work,
-made of one or more *days*. Each day carries its own field, equipment, crew, hectares and
+made of one or more *days*. Each day carries its own field, equipment, crew by role, hectares and
 start/end times, so a quick morning spray and a three-day trip to the other side of the
 country are the same thing in the app — the second just has more days. The price is rate
 per hectare × hectares, plus extra charges that each carry a note, and a job's totals,
@@ -150,7 +150,7 @@ and the forms still work without them.
 | **Serving** | gunicorn under systemd, WhiteNoise for static files, bound to the loopback interface only |
 | **Network edge** | Cloudflare — TLS 1.3, HTTPS-only, and an outbound-only Cloudflare Tunnel into the Pi |
 | **Security** | PBKDF2-SHA256 password hashing, CSRF protection, a strict Content-Security-Policy, HSTS, HTTPS-only cookies, permission-checked file downloads, PyJWT for verifying Cloudflare Access tokens, optional Turnstile bot check |
-| **Quality** | pytest (85 tests), ruff for linting and formatting |
+| **Quality** | pytest (94 tests), ruff for linting and formatting |
 | **Host** | Raspberry Pi 4 (4 GB) on Debian 13 |
 
 ## How it runs
@@ -229,23 +229,24 @@ A few rules hold the data together:
 - **Nothing is really deleted.** Records are hidden and restorable from a bin; only
   owners can purge permanently.
 - **Lists are data, not code.** Operation types and their default rates, crops, cost
-  categories, payment methods and equipment types are all edited in the app. Equipment
-  types even decide which dropdowns appear on a job day, and whether one or several items
-  can be picked.
+  categories, payment methods, crew roles and equipment types are all edited in the app.
+  Crew roles and equipment types even decide which dropdowns appear on a job day, and
+  whether one or several can be picked.
 - **Room to grow.** Payments already carry a status and an account, hidden for now, so
   invoices, part-payments and several accounts can arrive later without migrating old
   records. Imported days keep their source, their original record and its id.
 
 ## Testing
 
-85 tests run in about 25 seconds and cover the parts that would hurt: job totals and
+94 tests run in about 25 seconds and cover the parts that would hurt: job totals and
 rounding, multi-day jobs, numbering, derived status, work past midnight, the whole job
 form posted the way a browser posts it, payments following job totals, the money book's
 running balance, receipts staying private on disk and on the web, analytics figures, CSV
 import parsing and duplicate detection, the Cloudflare middleware including a signed
 Access token, the admin sign-in going through the protected login, the start-up guard on
-the data folder, the role editor's permission sets, the last-owner rule, the documentation
-pages and their images, and alphabet-independent search.
+the data folder, crew roles and who worked on what, the role editor's permission sets,
+the last-owner rule, the documentation pages and their images, and alphabet-independent
+search.
 
 ## Documentation
 

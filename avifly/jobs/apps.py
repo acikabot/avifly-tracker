@@ -25,7 +25,7 @@ class JobsConfig(AviflyModule):
         from avifly.customers.views import CUSTOMER_DELETE_BLOCKERS, FIELD_DELETE_BLOCKERS
         from avifly.equipment.views import DELETE_BLOCKERS as EQUIPMENT_DELETE_BLOCKERS
         from avifly.jobs import components
-        from avifly.jobs.models import Crop, Job, OperationType
+        from avifly.jobs.models import CrewRole, Crop, Job, OperationType
 
         auditlog.register(Job, exclude_fields=["updated_at", "year", "sequence"])
 
@@ -60,6 +60,15 @@ class JobsConfig(AviflyModule):
             )
         )
         registry.add_lookup(LookupList(Crop, description=_("Crops you work on."), order=11))
+        registry.add_lookup(
+            LookupList(
+                CrewRole,
+                fields=("name", "allow_multiple", "is_active", "sort_order"),
+                list_display=("allow_multiple",),
+                description=_("Who does what on a day (pilot, ground crew…)."),
+                order=12,
+            )
+        )
         registry.add_permission_section(
             PermissionSection(
                 key="jobs",

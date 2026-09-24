@@ -22,7 +22,7 @@ from avifly.core.registry import registry
 from avifly.customers.models import Customer, FarmField
 from avifly.equipment.models import Equipment, EquipmentType
 from avifly.jobs import services
-from avifly.jobs.models import Crop, ExtraCharge, Job, JobDay, OperationType
+from avifly.jobs.models import CrewRole, Crop, ExtraCharge, Job, JobDay, OperationType
 
 TAG = "[demo]"
 
@@ -146,7 +146,16 @@ class Command(BaseCommand):
                 )
             customers.append((customer, fields, [Crop.objects.get(name=c) for c in crops]))
 
-        crew = list(User.objects.usable()[:2])
+        # The first account flies; a second one (once the cousin signs up) is ground crew.
+        roles = list(CrewRole.objects.filter(is_active=True))
+        crew = (
+            [
+                (person, roles[min(index, len(roles) - 1)])
+                for index, person in enumerate(User.objects.usable()[:2])
+            ]
+            if roles
+            else []
+        )
         today = timezone.localdate()
         jobs = []
         for year in (today.year - 1, today.year):
@@ -225,7 +234,7 @@ class Command(BaseCommand):
             )
             job_day.farm_fields.set([rng.choice(fields)])
             job_day.equipment.set(equipment)
-            job_day.crew.set(crew)
+            services.set_day_crew(job_day, crew)
         job.is_multi_day = multi
         job.save(update_fields=["is_multi_day"])
         if not planned and rng.random() < 0.12:

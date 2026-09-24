@@ -79,10 +79,10 @@ def test_status_follows_the_work(customer, spraying):
     assert job.status == Job.Status.CANCELLED
 
 
-def test_next_day_copies_equipment_and_crew(job, drone, owner):
+def test_next_day_copies_equipment_and_crew(job, drone, owner, pilot_role):
     first = job.days.get()
     first.equipment.add(drone)
-    first.crew.add(owner)
+    services.set_day_crew(first, [(owner, pilot_role)])
     day = services.start_next_day(job, owner)
     assert day.position == 2
     assert list(day.equipment.all()) == [drone]
@@ -106,11 +106,12 @@ def test_duplicate_makes_a_planned_copy(job, field, owner):
     assert list(copy.days.get().farm_fields.all()) == [field]
 
 
-def test_restricted_users_only_see_their_own_jobs(job, customer, spraying):
+def test_restricted_users_only_see_their_own_jobs(job, customer, spraying, ground_role):
     pilot = make_user("pilot", perms=["jobs.view_job"])
     theirs = make_job(customer, spraying, user=pilot)
     crewed = make_job(customer, spraying)
-    crewed.days.get().crew.add(pilot)
+    # Any role counts as "worked on it", not just the first one.
+    services.set_day_crew(crewed.days.get(), [(pilot, ground_role)])
     visible = set(Job.objects.visible_to(pilot))
     assert visible == {theirs, crewed}
 

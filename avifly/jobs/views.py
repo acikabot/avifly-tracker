@@ -19,7 +19,9 @@ from avifly.jobs.models import Job, JobDay, JobPhoto
 
 
 def job_queryset(user, action: str = "view"):
-    days = JobDay.objects.prefetch_related("farm_fields", "equipment", "crew")
+    days = JobDay.objects.prefetch_related(
+        "farm_fields", "equipment", "crew_links__user", "crew_links__role"
+    )
     return (
         Job.objects.visible_to(user, action)
         .select_related("customer", "operation_type", "crop")

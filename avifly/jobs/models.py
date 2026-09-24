@@ -57,6 +57,29 @@ class Crop(LookupModel):
         verbose_name_plural = _("crops")
 
 
+class CrewRole(LookupModel):
+    """What someone did on a day (Pilot, Ground crew…), defined by the owners.
+
+    Each active role becomes its own dropdown on every job day, the same way
+    equipment types do.
+    """
+
+    allow_multiple = models.BooleanField(
+        _("several per day"),
+        default=True,
+        help_text=_("Allow picking more than one person for this role on a day."),
+    )
+
+    class Meta(LookupModel.Meta):
+        verbose_name = _("crew role")
+        verbose_name_plural = _("crew roles")
+
+    @classmethod
+    def default(cls) -> CrewRole | None:
+        """The role someone falls into when the app adds them itself (e.g. Start now)."""
+        return cls.objects.filter(is_active=True).first()
+
+
 class JobQuerySet(SoftDeleteQuerySet):
     def visible_to(self, user, action: str = "view"):
         """Jobs ``user`` may ``action`` (view/change/delete).
@@ -202,7 +225,11 @@ class JobDay(models.Model):
         Equipment, blank=True, related_name="job_days", verbose_name=_("equipment")
     )
     crew = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, blank=True, related_name="job_days", verbose_name=_("crew")
+        settings.AUTH_USER_MODEL,
+        through="JobDayCrew",
+        blank=True,
+        related_name="job_days",
+        verbose_name=_("crew"),
     )
     notes = models.CharField(_("notes"), max_length=300, blank=True)
     duration_minutes = models.PositiveIntegerField(null=True, blank=True, editable=False)
@@ -241,6 +268,38 @@ class JobDay(models.Model):
     @property
     def is_imported(self) -> bool:
         return self.source != "manual"
+
+    def crew_by_role(self) -> list[tuple[CrewRole, list]]:
+        """The people who worked, grouped by role — for showing a line per role."""
+        grouped: dict[int, tuple[CrewRole, list]] = {}
+        for link in self.crew_links.all():
+            grouped.setdefault(link.role_id, (link.role, []))[1].append(link.user)
+        return sorted(grouped.values(), key=lambda pair: (pair[0].sort_order, pair[0].name))
+
+
+class JobDayCrew(models.Model):
+    """One person on one day, in one role. The link behind ``JobDay.crew``."""
+
+    job_day = models.ForeignKey(JobDay, on_delete=models.CASCADE, related_name="crew_links")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="job_day_crew"
+    )
+    role = models.ForeignKey(
+        CrewRole, on_delete=models.PROTECT, related_name="crew_links", verbose_name=_("role")
+    )
+
+    class Meta:
+        ordering = ["role__sort_order", "role__name", "pk"]
+        verbose_name = _("crew member")
+        verbose_name_plural = _("crew")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["job_day", "user", "role"], name="jobdaycrew_unique_person_per_role"
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.user.display_name} — {self.role.name}"
 
 
 class ExtraCharge(models.Model):

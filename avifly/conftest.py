@@ -13,7 +13,7 @@ from avifly.accounts.models import User
 from avifly.customers.models import Customer, FarmField
 from avifly.equipment.models import Equipment, EquipmentType
 from avifly.jobs import services
-from avifly.jobs.models import Job, JobDay, OperationType
+from avifly.jobs.models import CrewRole, Job, JobDay, OperationType
 
 
 @pytest.fixture(autouse=True)
@@ -108,3 +108,13 @@ def make_job(customer, operation, *, days=((Decimal("10"), "2026-06-01"),), rate
 @pytest.fixture
 def job(customer, spraying, owner):
     return make_job(customer, spraying, user=owner)
+
+
+@pytest.fixture
+def pilot_role(db):
+    return CrewRole.objects.get(name="Pilot")
+
+
+@pytest.fixture
+def ground_role(db):
+    return CrewRole.objects.get(name="Ground crew")

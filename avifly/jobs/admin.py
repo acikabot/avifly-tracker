@@ -1,13 +1,14 @@
 from django.contrib import admin
 
-from avifly.jobs.models import Crop, ExtraCharge, Job, JobDay, OperationType
+from avifly.jobs.models import CrewRole, Crop, ExtraCharge, Job, JobDay, JobDayCrew, OperationType
 from avifly.jobs.services import assign_number, recalculate_job
 
 
 class JobDayInline(admin.StackedInline):
     model = JobDay
     extra = 0
-    filter_horizontal = ("farm_fields", "equipment", "crew")
+    # "crew" carries a role per person (JobDayCrew), so it is edited on its own page.
+    filter_horizontal = ("farm_fields", "equipment")
 
 
 class ExtraChargeInline(admin.TabularInline):
@@ -40,5 +41,12 @@ class JobAdmin(admin.ModelAdmin):
         recalculate_job(form.instance)
 
 
+@admin.register(JobDayCrew)
+class JobDayCrewAdmin(admin.ModelAdmin):
+    list_display = ("job_day", "user", "role")
+    list_filter = ("role",)
+
+
 admin.site.register(OperationType)
 admin.site.register(Crop)
+admin.site.register(CrewRole)

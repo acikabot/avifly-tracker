@@ -23,7 +23,7 @@ from avifly.core.registry import registry
 from avifly.customers.models import Customer, FarmField
 from avifly.equipment.models import Equipment, EquipmentType
 from avifly.jobs import services
-from avifly.jobs.models import Crop, ExtraCharge, Job, JobDay, OperationType
+from avifly.jobs.models import CrewRole, Crop, ExtraCharge, Job, JobDay, OperationType
 
 JOB_FORM_SECTIONS = "jobs.job_form"
 
@@ -118,7 +118,7 @@ class JobForm(forms.ModelForm):
 class JobDayForm(forms.ModelForm):
     class Meta:
         model = JobDay
-        fields = ["date", "farm_fields", "hectares", "start_time", "end_time", "crew", "notes"]
+        fields = ["date", "farm_fields", "hectares", "start_time", "end_time", "notes"]
         widgets = {
             "date": DateInput(),
             "start_time": TimeInput(),
@@ -147,16 +147,58 @@ class JobDayForm(forms.ModelForm):
         )
         _tom(self.fields["farm_fields"].widget, _("Pick the field(s)…"))
 
-        User = get_user_model()
-        crew_qs = User.objects.usable()
-        if day.pk:
-            crew_qs = crew_qs | User.objects.filter(pk__in=day.crew.values("pk"))
-        self.fields["crew"].queryset = crew_qs.distinct()
-        self.fields["crew"].label_from_instance = lambda u: u.display_name
-        _tom(self.fields["crew"].widget, _("Who worked?"))
+        self.crew_field_names: list[str] = []
+        self._add_crew_fields()
 
         self.equipment_field_names: list[str] = []
         self._add_equipment_fields()
+
+    def _add_crew_fields(self) -> None:
+        """One dropdown per crew role (Pilot, Ground crew…), as the owners defined them."""
+        User = get_user_model()
+        day = self.instance
+        links = list(day.crew_links.all()) if day.pk else []
+        people = User.objects.usable()
+        if links:
+            # Keep people who are already on the day, even if their account was closed.
+            people = people | User.objects.filter(pk__in=[link.user_id for link in links])
+        people = people.distinct()
+        for role in CrewRole.objects.filter(is_active=True):
+            mine = [link.user_id for link in links if link.role_id == role.pk]
+            name = f"crew_{role.pk}"
+            if role.allow_multiple:
+                field = forms.ModelMultipleChoiceField(
+                    queryset=people, required=False, label=role.name, initial=mine
+                )
+                _tom(field.widget, _("Who?"))
+            else:
+                field = forms.ModelChoiceField(
+                    queryset=people,
+                    required=False,
+                    label=role.name,
+                    empty_label="—",
+                    initial=mine[0] if mine else None,
+                )
+            field.label_from_instance = lambda u: u.display_name
+            self.fields[name] = field
+            self.crew_field_names.append(name)
+
+    @property
+    def crew_fields(self):
+        return [self[name] for name in self.crew_field_names]
+
+    def selected_crew(self) -> list[tuple]:
+        """The chosen people with the role they were chosen for."""
+        chosen: list[tuple] = []
+        roles = {role.pk: role for role in CrewRole.objects.all()}
+        for name in self.crew_field_names:
+            value = self.cleaned_data.get(name)
+            if not value:
+                continue
+            role = roles[int(name.removeprefix("crew_"))]
+            people = [value] if hasattr(value, "pk") else list(value)  # single or several
+            chosen.extend((person, role) for person in people)
+        return chosen
 
     def _add_equipment_fields(self) -> None:
         day = self.instance
@@ -316,7 +358,10 @@ class JobFormBundle:
 
     def _first_day_initial(self, initial: dict) -> dict:
         user = self.request.user
-        day = {"date": timezone.localdate(), "crew": [user.pk]}
+        day = {"date": timezone.localdate()}
+        role = CrewRole.default()
+        if role is not None:
+            day[f"crew_{role.pk}"] = [user.pk] if role.allow_multiple else user.pk
         for type_id, ids in services.last_used_equipment(user).items():
             day[f"equipment_{type_id}"] = ids
         day.update(initial.get("day", {}))
@@ -353,6 +398,7 @@ class JobFormBundle:
             day.save()
             form.save_m2m()
             day.equipment.set(form.selected_equipment())
+            services.set_day_crew(day, form.selected_crew())
 
         for form in self.charges.forms:
             if self.charges._should_delete_form(form):
@@ -388,7 +434,7 @@ class JobFormBundle:
         for key in list(data.keys()):
             if key.startswith(prefix):
                 name = key[len(prefix) :]
-                if name == "crew" or name.startswith("equipment_"):
+                if name.startswith(("crew_", "equipment_")):
                     data.setlist(f"days-{new}-{name}", data.getlist(key))
         data["job-is_multi_day"] = "on"
         return data

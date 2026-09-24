@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from avifly.core.formatting import round_money
 from avifly.customers.models import Customer
-from avifly.jobs.models import ExtraCharge, Job, JobDay, OperationType
+from avifly.jobs.models import CrewRole, ExtraCharge, Job, JobDay, JobDayCrew, OperationType
 from avifly.jobs.signals import job_totals_changed
 
 
@@ -99,9 +99,30 @@ def start_day(day: JobDay, user=None) -> JobDay:
     day.end_time = None
     day.save()
     if user is not None and user.is_active:
-        day.crew.add(user)
+        add_crew_member(day, user)
     recalculate_job(day.job)
     return day
+
+
+def set_day_crew(day: JobDay, pairs) -> None:
+    """Replace a day's crew with ``(person, role)`` pairs."""
+    JobDayCrew.objects.filter(job_day=day).delete()
+    JobDayCrew.objects.bulk_create(
+        [JobDayCrew(job_day=day, user=person, role=role) for person, role in pairs],
+        ignore_conflicts=True,
+    )
+
+
+def copy_day_crew(source: JobDay, day: JobDay) -> None:
+    """Put the same people, in the same roles, on another day."""
+    set_day_crew(day, [(link.user, link.role) for link in source.crew_links.all()])
+
+
+def add_crew_member(day: JobDay, user) -> None:
+    """Add someone to the day in the first crew role (used when work is started)."""
+    role = CrewRole.default()
+    if role is not None:
+        JobDayCrew.objects.get_or_create(job_day=day, user=user, role=role)
 
 
 @transaction.atomic
@@ -127,9 +148,9 @@ def start_next_day(job: Job, user=None) -> JobDay:
     )
     if previous is not None:
         day.equipment.set(previous.equipment.all())
-        day.crew.set(previous.crew.all())
+        copy_day_crew(previous, day)
     if user is not None and user.is_active:
-        day.crew.add(user)
+        add_crew_member(day, user)
     job.is_multi_day = True
     job.save(update_fields=["is_multi_day", "updated_at"])
     recalculate_job(job)
@@ -155,7 +176,7 @@ def duplicate_job(job: Job, user) -> Job:
     if source_day is not None:
         day.farm_fields.set(source_day.farm_fields.all())
         day.equipment.set(source_day.equipment.all())
-        day.crew.set(source_day.crew.all())
+        copy_day_crew(source_day, day)
     recalculate_job(copy)
     return copy
 

@@ -40,7 +40,7 @@ def job_post(customer, operation, days, *, multi=False, charges=(), extra=None):
     return data
 
 
-def test_create_single_day_job(owner_client, owner, customer, field, spraying, drone):
+def test_create_single_day_job(owner_client, owner, customer, field, spraying, drone, pilot_role):
     drone_type = EquipmentType.objects.get(name="Drone")
     day = {
         "date": "2026-06-01",
@@ -48,7 +48,7 @@ def test_create_single_day_job(owner_client, owner, customer, field, spraying, d
         "hectares": "12.40",
         "start_time": "07:42",
         "end_time": "11:00",
-        "crew": [owner.pk],
+        f"crew_{pilot_role.pk}": [owner.pk],
         f"equipment_{drone_type.pk}": drone.pk,
     }
     data = job_post(customer, spraying, [day], charges=[("Far field, extra travel", "1000")])
@@ -64,11 +64,23 @@ def test_create_single_day_job(owner_client, owner, customer, field, spraying, d
     assert day.duration_minutes == 198
 
 
-def test_create_multi_day_job_with_different_fields(owner_client, owner, customer, field, spraying):
+def test_create_multi_day_job_with_different_fields(
+    owner_client, owner, customer, field, spraying, pilot_role
+):
     hill = FarmField.objects.create(customer=customer, name="Hill")
     days = [
-        {"date": "2026-06-18", "farm_fields": [field.pk], "hectares": "40", "crew": [owner.pk]},
-        {"date": "2026-06-19", "farm_fields": [hill.pk], "hectares": "35.5", "crew": [owner.pk]},
+        {
+            "date": "2026-06-18",
+            "farm_fields": [field.pk],
+            "hectares": "40",
+            f"crew_{pilot_role.pk}": [owner.pk],
+        },
+        {
+            "date": "2026-06-19",
+            "farm_fields": [hill.pk],
+            "hectares": "35.5",
+            f"crew_{pilot_role.pk}": [owner.pk],
+        },
     ]
     response = owner_client.post(
         reverse("jobs:add"), job_post(customer, spraying, days, multi=True)
@@ -80,12 +92,14 @@ def test_create_multi_day_job_with_different_fields(owner_client, owner, custome
     assert job.total_hectares == Decimal("75.5")
 
 
-def test_add_day_button_keeps_what_was_typed(owner_client, owner, customer, spraying, drone):
+def test_add_day_button_keeps_what_was_typed(
+    owner_client, owner, customer, spraying, drone, pilot_role
+):
     drone_type = EquipmentType.objects.get(name="Drone")
     day = {
         "date": "2026-06-18",
         "hectares": "40",
-        "crew": [owner.pk],
+        f"crew_{pilot_role.pk}": [owner.pk],
         f"equipment_{drone_type.pk}": drone.pk,
     }
     data = job_post(customer, spraying, [day], extra={"action": "add_day"})

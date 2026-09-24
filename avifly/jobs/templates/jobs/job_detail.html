@@ -39,8 +39,10 @@
           </dd>
           <dt class="col-5 col-sm-3">{% translate "Equipment" %}</dt>
           <dd class="col-7 col-sm-9">{% for item in day.equipment.all %}<a href="{{ item.get_absolute_url }}">{{ item.name }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-body-secondary">—</span>{% endfor %}</dd>
-          <dt class="col-5 col-sm-3">{% translate "Crew" %}</dt>
-          <dd class="col-7 col-sm-9">{% for person in day.crew.all %}{{ person.display_name }}{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-body-secondary">—</span>{% endfor %}</dd>
+          {% for role, people in day.crew_by_role %}
+          <dt class="col-5 col-sm-3">{{ role.name }}</dt>
+          <dd class="col-7 col-sm-9">{% for person in people %}{{ person.display_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</dd>
+          {% endfor %}
           <dt class="col-5 col-sm-3">{% translate "Time" %}</dt>
           <dd class="col-7 col-sm-9"><span class="num">{{ day.start_time|time:"H:i"|default:"—" }} → {{ day.end_time|time:"H:i"|default:"—" }}</span>{% if day.duration_minutes %} <span class="text-body-secondary num">({{ day.duration_minutes|duration }})</span>{% endif %}</dd>
           <dt class="col-5 col-sm-3">{% translate "Hectares" %}</dt>
