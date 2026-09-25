@@ -20,9 +20,9 @@ can decide with.
 
 It is a small app built like a big one — a modular Django application where each feature
 is a plug-in that can be switched off, covered by tests, and hardened for the internet. It
-runs on a 4 GB Raspberry Pi in a house, in under 200 MB of memory, and it is live: reachable
-from anywhere over HTTPS through an outbound-only Cloudflare Tunnel, with no open ports and
-no cloud server.
+runs on a Raspberry Pi in a house, in a couple of hundred megabytes of memory, and it is
+live: reachable from anywhere over HTTPS without a cloud server and without opening a
+single port on the router.
 
 ![The home page on a desktop and on a phone, with generated demo data](docs/images/home.png)
 
@@ -31,7 +31,7 @@ no cloud server.
 - 9 plug-in modules, about 7,800 lines of Python and 76 server-rendered templates
 - 94 automated tests, running in about 25 seconds
 - 11 interactive charts and a map of every field worked
-- one Raspberry Pi 4, no open ports, and a sandbox rated **1.5 / 10 "OK"** by `systemd-analyze security`
+- one Raspberry Pi, no open ports, and an app that runs with almost no privileges of its own
 
 ---
 
@@ -147,42 +147,40 @@ and the forms still work without them.
 | **Images** | Pillow — phone photos are resized and stripped of EXIF (including GPS) on upload |
 | **E-mail** | SMTP for password resets, sign-up verification and approval notices |
 | **Documentation** | Python-Markdown — the app renders its own documentation at `/docs/` |
-| **Serving** | gunicorn under systemd, WhiteNoise for static files, bound to the loopback interface only |
+| **Serving** | gunicorn under systemd, WhiteNoise for static files, reachable only through the tunnel |
 | **Network edge** | Cloudflare — TLS 1.3, HTTPS-only, and an outbound-only Cloudflare Tunnel into the Pi |
 | **Security** | PBKDF2-SHA256 password hashing, CSRF protection, a strict Content-Security-Policy, HSTS, HTTPS-only cookies, permission-checked file downloads, PyJWT for verifying Cloudflare Access tokens, optional Turnstile bot check |
 | **Quality** | pytest (94 tests), ruff for linting and formatting |
-| **Host** | Raspberry Pi 4 (4 GB) on Debian 13 |
+| **Host** | A Raspberry Pi 4 running Debian |
 
 ## How it runs
 
 ```mermaid
 flowchart LR
-  V[Phone or browser] -- HTTPS --> E[Cloudflare edge<br/>TLS 1.3, HTTPS-only]
-  E -- encrypted tunnel --> T[cloudflared<br/>on the Pi]
-  T -- loopback only --> G[gunicorn<br/>127.0.0.1]
-  G --> A[Django app]
-  A --> S[(SQLite, uploads<br/>data folder)]
+  V[Phone or browser] -- HTTPS --> E[Cloudflare edge<br/>TLS, HTTPS-only]
+  E -- encrypted tunnel --> T[Tunnel client<br/>on the Pi]
+  T --> A[The app]
+  A --> S[(Database and uploads)]
 ```
 
-- **No way in except the tunnel.** The Pi dials *out* to Cloudflare; the router has no
-  open ports, and the app listens only on the Pi's loopback interface, so nothing on the
-  internet — or even on the home network — can reach it directly.
-- **HTTPS wherever a visitor can see.** Cloudflare terminates TLS 1.3, plain `http://` is
-  redirected, browsers are told to use HTTPS only (HSTS), and cookies never travel
-  unencrypted. The hop from the tunnel to the app never leaves the machine.
-- **Its own account, its own sandbox.** The service runs as a dedicated system account
-  with no login, no password and no sudo. systemd gives it a read-only operating system, an
-  empty `/home` with only the app put back into it (code read-only, data folder
-  read-write), no Linux capabilities, an allow-list of system calls and nothing but network
-  and local sockets. `systemd-analyze security` rates it **1.5 "OK"**; an unhardened
-  service scores above 9.
-- **Private by default on disk.** The data folder belongs to the service account alone,
-  uploads are written readable to it and its group only, and the app refuses to start
-  against a data folder that belongs to someone else — so a command run by the wrong user
-  fails loudly instead of leaving files the service can't read.
-- **Updates itself, carefully.** Dependencies are upgraded automatically on a schedule.
-  Each upgrade has to pass the full test suite and a health check after the restart, or
-  it is rolled back to the exact package set that was running before.
+- **No way in except the tunnel.** The Pi dials *out* to Cloudflare and keeps that
+  connection open; nothing dials in. The router has no open ports, and the app itself
+  refuses connections that don't arrive through the tunnel — so it is unreachable even
+  from other machines on the same home network.
+- **HTTPS wherever a visitor can see.** Encryption is terminated at the edge, plain
+  requests are redirected, browsers are told to use HTTPS only, and session cookies never
+  travel unencrypted.
+- **Its own account, with almost nothing granted to it.** The app runs as a dedicated
+  system account that cannot log in and holds no administrative rights. The operating
+  system hands it a read-only view of everything except its own data, no access to the
+  rest of the machine, and a restricted set of system calls. If the app were ever
+  compromised, what an attacker inherits is the app's own data and nothing else.
+- **Private by default on disk.** Uploaded photos and the database are readable only by
+  that account, and the app refuses to start against data belonging to somebody else —
+  so a mistake shows up immediately instead of quietly leaving files behind.
+- **It updates itself, carefully.** Dependencies are upgraded automatically on a
+  schedule. Each upgrade has to pass the full test suite and a health check after the
+  restart, or it is rolled back to the exact set of packages that was running before.
 
 ## Security
 
