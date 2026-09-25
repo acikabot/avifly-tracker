@@ -245,16 +245,3 @@ Access token, the admin sign-in going through the protected login, the start-up 
 the data folder, crew roles and who worked on what, the role editor's permission sets,
 the last-owner rule, the documentation pages and their images, and alphabet-independent
 search.
-
-## Documentation
-
-The app serves its own documentation at `/docs/` (Settings → Documentation), rendered
-from the Markdown in this repository — this page, plus
-[how to write a module](docs/modules.md), which walks through adding one using an
-invoices module as the example.
-
-## Status
-
-Version 0.1.0 — deployed, reachable from anywhere over HTTPS, and in use by the business.
-Next: Cloudflare Access in front of the whole app, off-site backups, invoices and money
-owed, a format-specific flight-record importer, and a Macedonian translation.
